@@ -26,11 +26,11 @@ export default function DashboardPage() {
           <a className="dashboard-nav-link" href="#filters"><span className="nav-icon"><BranchIcon /></span>Filter Cabang</a>
         </nav>
 
-        <div className="sidebar-note">
+        {/* <div className="sidebar-note">
           <span className="sidebar-note-mark">✳</span>
           <p>Data yang jelas.<br />Keputusan yang lebih baik.</p>
-        </div>
-        <div className="sidebar-foot"><span className="sidebar-status-dot" /> SISTEM OPERASIONAL</div>
+        </div> */}
+        {/* <div className="sidebar-foot"><span className="sidebar-status-dot" /> SISTEM OPERASIONAL</div> */}
       </aside>
 
       <div className="dashboard-main" id="overview">
@@ -39,11 +39,18 @@ export default function DashboardPage() {
           <div className="topbar-right">
             <TodayLabel />
             <button className="icon-button" type="button" aria-label="Notifikasi"><BellIcon /></button>
-            <a className="topbar-profile" href="#profile" aria-label="Lihat profil Alex Morgan">
-              <span className="profile-avatar" aria-hidden="true">A</span>
-              <span className="topbar-profile-copy"><strong>Alex Morgan</strong><small>Administrator</small></span>
-              <span className="topbar-profile-menu" aria-hidden="true">···</span>
-            </a>
+            <details className="profile-dropdown">
+              <summary className="topbar-profile" aria-label="Buka menu profil Alex Morgan">
+                <span className="profile-avatar" aria-hidden="true">A</span>
+                <span className="topbar-profile-copy"><strong>Alex Morgan</strong><small>Administrator</small></span>
+                <span className="topbar-profile-menu" aria-hidden="true">⌄</span>
+              </summary>
+              <div className="profile-dropdown-panel">
+                <div className="profile-dropdown-heading"><span className="profile-avatar" aria-hidden="true">A</span><span><strong>Alex Morgan</strong><small>Administrator</small></span></div>
+                <a href="#profile">Profil saya</a>
+                <Link href="/">Keluar</Link>
+              </div>
+            </details>
           </div>
         </header>
 

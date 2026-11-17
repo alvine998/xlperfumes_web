@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { MonthlySalesChart } from "./monthly-sales-chart";
 import { VariantSalesChart } from "./variant-sales-chart";
 
 const branches = [
@@ -31,8 +32,9 @@ const variantData = [
   { label: "XL Amber", value: 87 },
 ] as const;
 
-const initialStartDate = "2026-11-01";
+const initialStartDate = "2026-01-01";
 const initialEndDate = "2026-11-17";
+const monthlySalesSample = [1245, 1160, 1380, 1510, 1448, 1690, 1830, 1760, 1940, 2100, 1380, 2250];
 
 function formatNumber(value: number) {
   return new Intl.NumberFormat("id-ID").format(value);
@@ -43,6 +45,41 @@ function getDayCount(startDate: string, endDate: string) {
   const start = new Date(`${startDate}T00:00:00`);
   const end = new Date(`${endDate}T00:00:00`);
   return Math.max(1, Math.floor((end.getTime() - start.getTime()) / 86_400_000) + 1);
+}
+
+function getMonthlySales(startDate: string, endDate: string, branchMultiplier: number) {
+  if (!startDate || !endDate || startDate > endDate) return [];
+
+  const startYear = Number(startDate.slice(0, 4));
+  const startMonth = Number(startDate.slice(5, 7)) - 1;
+  const endYear = Number(endDate.slice(0, 4));
+  const endMonth = Number(endDate.slice(5, 7)) - 1;
+  const firstDay = Number(startDate.slice(8, 10));
+  const lastDay = Number(endDate.slice(8, 10));
+  const months: { label: string; total: number }[] = [];
+
+  for (let year = startYear, month = startMonth; year < endYear || (year === endYear && month <= endMonth);) {
+    const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+    const rangeStartDay = year === startYear && month === startMonth ? firstDay : 1;
+    const rangeEndDay = year === endYear && month === endMonth ? lastDay : daysInMonth;
+    const selectedDays = Math.max(0, rangeEndDay - rangeStartDay + 1);
+    const monthSample = monthlySalesSample[month] ?? 0;
+    const monthCount = Math.round(monthSample * (selectedDays / daysInMonth) * branchMultiplier);
+
+    months.push({
+      label: new Intl.DateTimeFormat("id-ID", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(year, month, 1))),
+      total: monthCount,
+    });
+
+    if (month === 11) {
+      year += 1;
+      month = 0;
+    } else {
+      month += 1;
+    }
+  }
+
+  return months;
 }
 
 export function AnalyticsDashboard() {
@@ -62,6 +99,7 @@ export function AnalyticsDashboard() {
     ...variant,
     count: Math.round(variant.value * selectedBranch.multiplier * periodFactor),
   })), [periodFactor, selectedBranch]);
+  const monthlySales = useMemo(() => getMonthlySales(startDate, endDate, selectedBranch.multiplier), [startDate, endDate, selectedBranch]);
 
   const hasValidPeriod = Boolean(startDate && endDate && startDate <= endDate);
 
@@ -104,6 +142,13 @@ export function AnalyticsDashboard() {
         <div className="section-heading sales-heading"><div><span className="dashboard-eyebrow">RINGKASAN PENJUALAN</span><h2 id="sales-heading">Statistik Varian Terjual</h2></div><div className="chart-period"><CalendarIcon /><span>{formatShortDate(startDate)} — {formatShortDate(endDate)}</span></div></div>
         <p className="sales-description">Jumlah unit terjual per varian untuk <strong>{selectedBranch.label}</strong>.</p>
         <VariantSalesChart data={hasValidPeriod ? soldVariants : soldVariants.map((item) => ({ ...item, count: 0 }))} />
+        <div className="chart-footnote"><span>DATA CONTOH</span><span>Jumlah dalam unit</span></div>
+      </section>
+
+      <section className="monthly-sales-section" id="monthly-sales" aria-labelledby="monthly-sales-heading">
+        <div className="section-heading sales-heading"><div><span className="dashboard-eyebrow">TREN PENJUALAN</span><h2 id="monthly-sales-heading">Statistik Penjualan Bulanan</h2></div><div className="monthly-total"><span>TOTAL PERIODE</span><strong>{formatNumber(monthlySales.reduce((total, month) => total + month.total, 0))}<small> unit</small></strong></div></div>
+        <p className="sales-description">Performa penjualan tiap bulan untuk <strong>{selectedBranch.label}</strong>. Bulan di luar tanggal terpilih tidak ditampilkan.</p>
+        <MonthlySalesChart data={hasValidPeriod ? monthlySales : []} />
         <div className="chart-footnote"><span>DATA CONTOH</span><span>Jumlah dalam unit</span></div>
       </section>
 
