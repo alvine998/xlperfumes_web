@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AnalyticsDashboard } from "./analytics-dashboard";
+import { NotificationModal } from "./notification-modal";
 import { TodayLabel } from "./today-label";
 import "../../../styles/dashboard.css";
 
@@ -24,6 +25,7 @@ export default function DashboardPage() {
           <a className="dashboard-nav-link" href="#stats"><span className="nav-icon"><InventoryIcon /></span>Status Stok</a>
           <a className="dashboard-nav-link" href="#sales"><span className="nav-icon"><SalesIcon /></span>Penjualan</a>
           <a className="dashboard-nav-link" href="#filters"><span className="nav-icon"><BranchIcon /></span>Filter Cabang</a>
+          <Link className="dashboard-nav-link" href="/main/users"><span className="nav-icon"><UsersIcon /></span>Pengguna</Link>
         </nav>
 
         {/* <div className="sidebar-note">
@@ -38,7 +40,7 @@ export default function DashboardPage() {
           <div className="breadcrumb">OPERASIONAL <span>/</span> RINGKASAN</div>
           <div className="topbar-right">
             <TodayLabel />
-            <button className="icon-button" type="button" aria-label="Notifikasi"><BellIcon /></button>
+            <NotificationModal />
             <details className="profile-dropdown">
               <summary className="topbar-profile" aria-label="Buka menu profil Alex Morgan">
                 <span className="profile-avatar" aria-hidden="true">A</span>
@@ -76,6 +78,7 @@ function BranchIcon() {
   return <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 17s5-4.4 5-9a5 5 0 1 0-10 0c0 4.6 5 9 5 9Z" stroke="currentColor" strokeWidth="1.3"/><circle cx="10" cy="8" r="1.7" stroke="currentColor" strokeWidth="1.3"/></svg>;
 }
 
-function BellIcon() {
-  return <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M15.5 8a5.5 5.5 0 0 0-11 0c0 6-2 6.5-2 7h15c0-.5-2-1-2-7ZM8 18h4" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+function UsersIcon() {
+  return <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="7.5" cy="6.3" r="2.5" stroke="currentColor" strokeWidth="1.3"/><path d="M2.8 16c.4-2.7 2-4.1 4.7-4.1s4.3 1.4 4.7 4.1M13 4.2a2.4 2.4 0 0 1 0 4.7m1.2 3.1c1.8.5 2.8 1.8 3 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>;
 }
+

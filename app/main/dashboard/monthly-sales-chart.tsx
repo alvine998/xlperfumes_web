@@ -36,11 +36,11 @@ export function MonthlySalesChart({ data }: MonthlySalesChartProps) {
       categories: data.map((item) => item.label),
       axisBorder: { show: false },
       axisTicks: { show: false },
-      labels: { style: { fontSize: "10px" }, rotate: -35, rotateAlways: false },
+      labels: { style: { fontSize: "12px" }, rotate: -35, rotateAlways: false },
     },
     yaxis: {
       min: 0,
-      labels: { formatter: (value) => new Intl.NumberFormat("id-ID", { notation: "compact", maximumFractionDigits: 1 }).format(value), style: { fontSize: "10px" } },
+      labels: { formatter: (value) => new Intl.NumberFormat("id-ID", { notation: "compact", maximumFractionDigits: 1 }).format(value), style: { fontSize: "12px" } },
     },
     grid: { borderColor: "#ece8df", strokeDashArray: 3, padding: { left: 8, right: 12 } },
     legend: { show: false },
