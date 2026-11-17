@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "apexcharts": "^8.9.0",
+    "lucide-react": "^1.74.0",
     "next": "16.4.6",
     "react": "19.3.0",
     "react-apexcharts": "^2.2.1",

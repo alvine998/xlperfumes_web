@@ -2,27 +2,39 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { ArrowUpRight, Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
 import { Input } from "@/components/ui/input";
+import { API_BASE_URL, getApiError } from "@/lib/api";
 
 export function LoginForm() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    const payload = {
-      username: formData.get("username"),
-      password: formData.get("password"),
-    };
-    if (payload.username && payload.password) {
-      if (payload.username === "admin" && payload.password === "admin123") {
-        toast.success("Welcome back. Opening your collection…");
-        router.push("/main/dashboard");
-      } else {
-        toast.error("Invalid username or password.");
-      }
+    const username = String(formData.get("username") ?? "").trim();
+    const password = String(formData.get("password") ?? "");
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ username, password }),
+      });
+      if (!response.ok) throw new Error(await getApiError(response));
+
+      toast.success("Berhasil masuk.");
+      router.replace("/main/dashboard");
+      router.refresh();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to sign in.");
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -54,33 +66,15 @@ export function LoginForm() {
             aria-label={showPassword ? "Hide password" : "Show password"}
             aria-pressed={showPassword}
           >
-            {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+            {showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
           </button>
         }
       />
 
-      <button className="submit-button" type="submit">
-        <span>Sign in</span>
-        <span aria-hidden="true">↗</span>
+      <button className="submit-button" type="submit" disabled={isSubmitting}>
+        <span>{isSubmitting ? "Signing in…" : "Sign in"}</span>
+        <ArrowUpRight aria-hidden="true" />
       </button>
     </form>
-  );
-}
-
-function EyeIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M2.5 12s3.45-6 9.5-6 9.5 6 9.5 6-3.45 6-9.5 6-9.5-6-9.5-6Z" />
-      <circle cx="12" cy="12" r="2.6" />
-    </svg>
-  );
-}
-
-function EyeOffIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="m3 3 18 18M10.6 6.2A10.7 10.7 0 0 1 12 6c6.05 0 9.5 6 9.5 6a15.8 15.8 0 0 1-3.1 3.7M6.2 6.7C3.8 8.3 2.5 12 2.5 12s3.45 6 9.5 6c1.1 0 2.1-.2 3-.5" />
-      <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
-    </svg>
   );
 }

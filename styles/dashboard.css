@@ -183,6 +183,8 @@
   font-size: 8px;
 }
 .topbar-profile-menu {
+  display: grid;
+  place-items: center;
   margin-left: 4px;
   color: var(--dashboard-muted);
   font-size: 18px;
@@ -232,18 +234,27 @@
   color: var(--dashboard-muted);
   font-size: 8px;
 }
-.profile-dropdown-panel > a {
+.profile-dropdown-panel > a,
+.profile-dropdown-panel > button {
   display: block;
+  width: 100%;
   border-radius: 2px;
+  border: 0;
   padding: 10px 8px;
   color: var(--dashboard-ink);
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
   font-size: 10px;
   text-decoration: none;
+  text-align: left;
 }
-.profile-dropdown-panel > a:hover {
+.profile-dropdown-panel > a:hover,
+.profile-dropdown-panel > button:hover {
   background: color-mix(in srgb, var(--dashboard-line), transparent 50%);
 }
-.profile-dropdown-panel > a:last-child {
+.profile-dropdown-panel > a:last-child,
+.profile-dropdown-panel > button:last-child {
   color: #9b584d;
 }
 .icon-button {
@@ -480,6 +491,9 @@
   margin-left: auto;
   color: #aaa597;
   font-size: 13px;
+}
+.status-more svg {
+  display: block;
 }
 .status-count {
   display: block;

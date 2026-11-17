@@ -4,6 +4,13 @@
 .users-page-heading {
   margin-bottom: 24px;
 }
+.users-error {
+  border: 1px solid #e8c9c3;
+  padding: 12px 15px;
+  color: #85463d;
+  background: #fbf2ef;
+  font-size: 11px;
+}
 .users-heading-actions {
   display: flex;
   align-items: center;

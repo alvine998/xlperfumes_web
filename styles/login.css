@@ -313,8 +313,9 @@
   outline: 2px solid var(--focus);
   outline-offset: 3px;
 }
-.submit-button span:last-child {
-  font-size: 18px;
+.submit-button > svg {
+  width: 18px;
+  height: 18px;
 }
 .form-message {
   min-height: 16px;

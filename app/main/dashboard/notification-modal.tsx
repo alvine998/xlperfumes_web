@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { Bell, X } from "lucide-react";
 
 const notifications = [
   { id: "stock", title: "Pembaruan stok selesai", detail: "Data stok seluruh cabang berhasil diperbarui.", time: "10 menit lalu" },
@@ -30,7 +31,7 @@ export function NotificationModal() {
         aria-label={`Notifikasi${unreadIds.length > 0 ? `, ${unreadIds.length} belum dibaca` : ""}`}
         onClick={() => dialogRef.current?.showModal()}
       >
-        <BellIcon />
+        <Bell aria-hidden="true" />
         {unreadIds.length > 0 && <span className="notification-badge" aria-hidden="true">{unreadIds.length}</span>}
       </button>
 
@@ -43,7 +44,7 @@ export function NotificationModal() {
         <section className="notification-panel">
           <header className="notification-header">
             <div><span className="dashboard-eyebrow">PUSAT INFORMASI</span><h2 id="notification-title">Notifikasi <span>{unreadIds.length}</span></h2></div>
-            <button className="notification-close" type="button" aria-label="Tutup notifikasi" onClick={() => dialogRef.current?.close()}>×</button>
+          <button className="notification-close" type="button" aria-label="Tutup notifikasi" onClick={() => dialogRef.current?.close()}><X size={16} aria-hidden="true" /></button>
           </header>
           <div className="notification-actions">
             <span>{unreadIds.length > 0 ? `${unreadIds.length} belum dibaca` : "Semua sudah dibaca"}</span>
@@ -65,8 +66,4 @@ export function NotificationModal() {
       </dialog>
     </>
   );
-}
-
-function BellIcon() {
-  return <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M15.5 8a5.5 5.5 0 0 0-11 0c0 6-2 6.5-2 7h15c0-.5-2-1-2-7ZM8 18h4" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg>;
 }

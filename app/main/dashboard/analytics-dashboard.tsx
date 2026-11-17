@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { ArrowUpRight, CalendarDays, Filter } from "lucide-react";
 import { MonthlySalesChart } from "./monthly-sales-chart";
 import { VariantSalesChart } from "./variant-sales-chart";
 
@@ -120,7 +121,7 @@ export function AnalyticsDashboard() {
       </section>
 
       <section className="dashboard-filters" id="filters" aria-label="Filter statistik">
-        <div className="filter-heading"><span className="filter-icon"><FilterIcon /></span><div><strong>Filter laporan</strong><small>Sesuaikan periode dan cabang</small></div></div>
+        <div className="filter-heading"><span className="filter-icon"><Filter aria-hidden="true" /></span><div><strong>Filter laporan</strong><small>Sesuaikan periode dan cabang</small></div></div>
         <div className="filter-controls">
           <label className="filter-field"><span>Tanggal mulai</span><input type="date" value={startDate} max={endDate} onChange={(event) => setStartDate(event.target.value)} /></label>
           <span className="date-separator" aria-hidden="true">—</span>
@@ -134,12 +135,12 @@ export function AnalyticsDashboard() {
       <section className="status-section" id="stats" aria-labelledby="status-heading">
         <div className="section-heading"><div><span className="dashboard-eyebrow">POSISI INVENTARIS</span><h2 id="status-heading">Statistik Status Barang</h2></div><span className="period-caption">{periodDays} hari <i>·</i> {selectedBranch.label}</span></div>
         <div className="status-grid">
-          {metrics.map((metric) => <article className={`status-card status-${metric.color}`} key={metric.key}><div className="status-card-top"><span className="status-dot" /><span className="status-card-label">{metric.label}</span><span className="status-more" aria-hidden="true">↗</span></div><strong className="status-count">{formatNumber(hasValidPeriod ? metric.count : 0)}<small> unit</small></strong><span className="status-note">{metric.note}</span></article>)}
+          {metrics.map((metric) => <article className={`status-card status-${metric.color}`} key={metric.key}><div className="status-card-top"><span className="status-dot" /><span className="status-card-label">{metric.label}</span><span className="status-more"><ArrowUpRight size={14} aria-hidden="true" /></span></div><strong className="status-count">{formatNumber(hasValidPeriod ? metric.count : 0)}<small> unit</small></strong><span className="status-note">{metric.note}</span></article>)}
         </div>
       </section>
 
       <section className="sales-section" id="sales" aria-labelledby="sales-heading">
-        <div className="section-heading sales-heading"><div><span className="dashboard-eyebrow">RINGKASAN PENJUALAN</span><h2 id="sales-heading">Statistik Varian Terjual</h2></div><div className="chart-period"><CalendarIcon /><span>{formatShortDate(startDate)} — {formatShortDate(endDate)}</span></div></div>
+        <div className="section-heading sales-heading"><div><span className="dashboard-eyebrow">RINGKASAN PENJUALAN</span><h2 id="sales-heading">Statistik Varian Terjual</h2></div><div className="chart-period"><CalendarDays aria-hidden="true" /><span>{formatShortDate(startDate)} — {formatShortDate(endDate)}</span></div></div>
         <p className="sales-description">Jumlah unit terjual per varian untuk <strong>{selectedBranch.label}</strong>.</p>
         <VariantSalesChart data={hasValidPeriod ? soldVariants : soldVariants.map((item) => ({ ...item, count: 0 }))} />
         <div className="chart-footnote"><span>DATA CONTOH</span><span>Jumlah dalam unit</span></div>
@@ -162,10 +163,3 @@ function formatShortDate(value: string) {
   return new Intl.DateTimeFormat("id-ID", { day: "2-digit", month: "short", year: "numeric" }).format(date);
 }
 
-function FilterIcon() {
-  return <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 5h14M5.5 10h9M8 15h4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/><circle cx="7" cy="5" r="1.5" fill="currentColor"/><circle cx="12" cy="10" r="1.5" fill="currentColor"/><circle cx="9" cy="15" r="1.5" fill="currentColor"/></svg>;
-}
-
-function CalendarIcon() {
-  return <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="3" y="4.5" width="14" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.3"/><path d="M6.5 3v3M13.5 3v3M3 8h14" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>;
-}
