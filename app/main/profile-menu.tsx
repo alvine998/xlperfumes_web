@@ -3,9 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown } from "lucide-react";
-import axios from "axios";
 import toast from "react-hot-toast";
-import { api, getApiError } from "@/lib/api";
+import { api, getApi, getApiError } from "@/lib/api";
 import { isUser, type User } from "@/lib/users";
 
 export function ProfileMenu() {
@@ -13,9 +12,10 @@ export function ProfileMenu() {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    const controller = new AbortController();
-    api.get<unknown>("/auth/me", { signal: controller.signal })
+    let isCurrent = true;
+    getApi("/auth/me")
       .then(({ data }) => {
+        if (!isCurrent) return;
         const payload = data;
         if (
           typeof payload !== "object" ||
@@ -28,10 +28,9 @@ export function ProfileMenu() {
         setUser(payload.user);
       })
       .catch((error: unknown) => {
-        if (axios.isCancel(error)) return;
-        toast.error(getApiError(error));
+        if (isCurrent) toast.error(getApiError(error));
       });
-    return () => controller.abort();
+    return () => { isCurrent = false; };
   }, []);
 
   async function handleLogout() {

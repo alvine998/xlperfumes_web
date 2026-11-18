@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { type AxiosResponse } from "axios";
 
 export const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api"
@@ -9,6 +9,21 @@ export const api = axios.create({
   withCredentials: true,
   headers: { Accept: "application/json" },
 });
+
+const pendingGetRequests = new Map<string, Promise<AxiosResponse<unknown>>>();
+
+export function getApi(path: string) {
+  const pendingRequest = pendingGetRequests.get(path);
+  if (pendingRequest) return pendingRequest;
+
+  const request = api.get<unknown>(path).finally(() => {
+    if (pendingGetRequests.get(path) === request) {
+      pendingGetRequests.delete(path);
+    }
+  });
+  pendingGetRequests.set(path, request);
+  return request;
+}
 
 export function getApiError(error: unknown) {
   if (!axios.isAxiosError(error)) {

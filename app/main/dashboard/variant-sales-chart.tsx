@@ -5,7 +5,11 @@ import type { ApexOptions } from "apexcharts";
 
 const Chart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
-  loading: () => <div className="chart-loading" role="status">Memuat grafik penjualan…</div>,
+  loading: () => (
+    <div className="chart-loading" role="status">
+      Memuat grafik penjualan…
+    </div>
+  ),
 });
 
 type VariantDatum = {
@@ -36,20 +40,56 @@ export function VariantSalesChart({ data }: VariantSalesChartProps) {
       },
     },
     colors: ["#687052", "#85886b", "#a3a083", "#b9a985", "#c5bda9"],
-    dataLabels: { enabled: true, textAnchor: "start", offsetX: 8, style: { fontSize: "13px", fontWeight: 500, colors: ["#5c5a50"] }, formatter: (value) => new Intl.NumberFormat("id-ID").format(Number(value)) },
+    dataLabels: {
+      enabled: true,
+      textAnchor: "start",
+      offsetX: 8,
+      style: { fontSize: "13px", fontWeight: 500, colors: ["#5c5a50"] },
+      formatter: (value) =>
+        new Intl.NumberFormat("id-ID").format(Number(value)),
+    },
     xaxis: {
       categories: data.map((item) => item.label),
       min: 0,
-      labels: { formatter: (value) => new Intl.NumberFormat("id-ID").format(Number(value)), style: { fontSize: "12px" } },
+      labels: {
+        formatter: (value) =>
+          new Intl.NumberFormat("id-ID").format(Number(value)),
+        style: { fontSize: "12px" },
+      },
       axisBorder: { show: false },
       axisTicks: { show: false },
     },
     yaxis: { labels: { style: { fontSize: "13px", colors: ["#555347"] } } },
-    grid: { borderColor: "#ece8df", strokeDashArray: 3, xaxis: { lines: { show: true } }, yaxis: { lines: { show: false } }, padding: { left: 8, right: 28 } },
+    grid: {
+      borderColor: "#ece8df",
+      strokeDashArray: 3,
+      xaxis: { lines: { show: true } },
+      yaxis: { lines: { show: false } },
+      padding: { left: 8, right: 28 },
+    },
     legend: { show: false },
-    tooltip: { y: { formatter: (value) => `${new Intl.NumberFormat("id-ID").format(value ?? 0)} unit` } },
-    states: { hover: { filter: { type: "lighten", value: 0.06 } }, active: { filter: { type: "none" } } },
+    tooltip: {
+      y: {
+        formatter: (value) =>
+          `${new Intl.NumberFormat("id-ID").format(value ?? 0)} unit`,
+      },
+    },
+    states: {
+      hover: { filter: { type: "lighten", value: 0.06 } },
+      active: { filter: { type: "none" } },
+    },
   };
 
-  return <div className="variant-chart"><Chart options={options} series={[{ name: "Unit terjual", data: data.map((item) => item.count) }]} type="bar" height={280} /></div>;
+  return (
+    <div className="variant-chart">
+      <Chart
+        options={options}
+        series={[
+          { name: "Unit terjual", data: data.map((item) => item.count) },
+        ]}
+        type="bar"
+        height={280}
+      />
+    </div>
+  );
 }
