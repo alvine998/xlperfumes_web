@@ -10,6 +10,7 @@
   color: var(--dashboard-ink);
   background: var(--dashboard-paper);
 }
+.dashboard-shell [hidden] { display: none !important; }
 .dashboard-sidebar {
   position: sticky;
   top: 0;
@@ -50,7 +51,9 @@
 }
 .dashboard-nav {
   display: grid;
+  max-height: calc(100vh - 166px);
   gap: 6px;
+  overflow-y: auto;
 }
 .dashboard-nav-link {
   display: flex;
@@ -704,8 +707,14 @@
   .dashboard-nav {
     display: grid;
     height: 100%;
-    grid-template-columns: repeat(5, 1fr);
+    max-height: none;
+    grid-auto-columns: minmax(64px, 1fr);
+    grid-auto-flow: column;
+    grid-template-columns: none;
     gap: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
   }
   .dashboard-nav-link {
     position: relative;
@@ -922,10 +931,10 @@
   .breadcrumb { font-size: 8px; }
   .dashboard-footer { font-size: 7px; }
 }
+.notification-dropdown { position: relative; }
 .notification-trigger { position: relative; }
 .notification-badge { position: absolute; top: -4px; right: -4px; display: grid; min-width: 15px; height: 15px; place-items: center; border: 1px solid var(--dashboard-paper); border-radius: 50%; padding: 0 3px; color: #fff; background: #a45c4e; font-size: 8px; line-height: 1; }
-.notification-dialog { position: fixed; inset: 0; width: min(420px, calc(100vw - 32px)); max-height: min(620px, calc(100vh - 32px)); }
-.notification-panel { overflow: hidden; }
+.notification-panel { position: absolute; z-index: 30; top: calc(100% + 12px); right: 0; width: min(420px, calc(100vw - 32px)); max-height: min(620px, calc(100vh - 32px)); overflow: hidden; border: 1px solid var(--dashboard-line); border-radius: 12px; background: var(--dashboard-paper); box-shadow: 0 12px 30px #25241d1c; }
 .notification-header { display: flex; align-items: start; justify-content: space-between; border-bottom: 1px solid var(--dashboard-line); padding: 20px 21px 16px; }
 .notification-header h2 { display: flex; align-items: center; gap: 8px; margin: 7px 0 0; font-family: Georgia, "Times New Roman", serif; font-size: 24px; font-weight: 400; }
 .notification-header h2 span { display: grid; min-width: 18px; height: 18px; place-items: center; border-radius: 9px; padding: 0 5px; color: #fff; background: #73785a; font-family: Arial, sans-serif; font-size: 10px; }
@@ -941,7 +950,7 @@
 .notification-item p { margin: 5px 0 7px; color: var(--dashboard-muted); font-size: 11px; line-height: 1.5; }
 .notification-item time { color: #a19b8e; font-size: 9px; }
 .notification-footer { padding: 11px 21px; color: #a19b8e; font-size: 9px; text-align: center; }
-.notification-dialog button:focus-visible { outline: 2px solid #8c896e; outline-offset: 3px; }
+.notification-panel button:focus-visible { outline: 2px solid #8c896e; outline-offset: 3px; }
 
 /* High contrast and larger touch targets for day-to-day field operations. */
 .dashboard-brand { font-size: 12px; }
@@ -1085,10 +1094,10 @@
 .dashboard-footer { border-top-color: #d4dacf; }
 .profile-dropdown-panel,
 .notification-panel {
-  border: 1px solid #f6f8f3;
+  border: 1px solid #e3e6e1;
   border-radius: 16px;
   background: var(--dashboard-paper);
-  box-shadow: 12px 12px 28px #cbd2c8, -8px -8px 20px #ffffffd9;
+  box-shadow: 12px 12px 28px #cbd2c8;
 }
 .notification-trigger:hover,
 .notification-close:hover,
@@ -1124,3 +1133,23 @@
 @media (prefers-reduced-motion: reduce) {
   .status-card { transition: none; }
 }
+
+/* Keep supporting copy readable against the white canvas. */
+.report-updated,
+.period-caption,
+.chart-period,
+.status-count small,
+.status-note,
+.sales-description,
+.monthly-chart-empty,
+.monthly-total > span,
+.monthly-total small,
+.chart-footnote,
+.dashboard-footer,
+.profile-dropdown-heading small,
+.topbar-profile-copy small,
+.notification-actions,
+.notification-item p,
+.notification-item time,
+.notification-footer { color: #535266; }
+.notification-actions button { color: #4d3bb4; }

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { ArrowUpRight, CalendarDays, Filter } from "lucide-react";
 import { DashboardFooter } from "@/components/layout/dashboard-footer";
+import type { FeaturePermissions } from "@/lib/permissions";
 import { MonthlySalesChart } from "./monthly-sales-chart";
 import { VariantSalesChart } from "./variant-sales-chart";
 
@@ -146,7 +147,7 @@ function getMonthlySales(
   return months;
 }
 
-export function AnalyticsDashboard() {
+export function AnalyticsDashboard({ permissions }: { permissions: FeaturePermissions }) {
   const [startDate, setStartDate] = useState(initialStartDate);
   const [endDate, setEndDate] = useState(initialEndDate);
   const [branch, setBranch] = useState<BranchValue>("all");
@@ -192,7 +193,7 @@ export function AnalyticsDashboard() {
 
   return (
     <div className="dashboard-content">
-      <section className="dashboard-heading" aria-labelledby="dashboard-title">
+      <section className="dashboard-heading" aria-labelledby="dashboard-title" hidden={!permissions.overview}>
         <div>
           <span className="dashboard-eyebrow">PUSAT KONTROL OPERASIONAL</span>
           <h1 id="dashboard-title">Ringkasan Statistik</h1>
@@ -208,6 +209,7 @@ export function AnalyticsDashboard() {
         className="dashboard-filters"
         id="filters"
         aria-label="Filter statistik"
+        hidden={!permissions.overview}
       >
         <div className="filter-heading">
           <span className="filter-icon">
@@ -266,6 +268,7 @@ export function AnalyticsDashboard() {
         className="status-section"
         id="stats"
         aria-labelledby="status-heading"
+        hidden={!permissions.inventory}
       >
         <div className="section-heading">
           <div>
@@ -303,6 +306,7 @@ export function AnalyticsDashboard() {
         className="sales-section"
         id="sales"
         aria-labelledby="sales-heading"
+        hidden={!permissions.sales}
       >
         <div className="section-heading sales-heading">
           <div>
@@ -337,6 +341,7 @@ export function AnalyticsDashboard() {
         className="monthly-sales-section"
         id="monthly-sales"
         aria-labelledby="monthly-sales-heading"
+        hidden={!permissions.sales}
       >
         <div className="section-heading sales-heading">
           <div>

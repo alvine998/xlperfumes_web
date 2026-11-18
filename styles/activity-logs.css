@@ -111,3 +111,8 @@
   outline: 3px solid #6654d9;
   outline-offset: 3px;
 }
+.activity-table-header p,
+.activity-table-footer,
+.activity-empty,
+.activity-filter-field > span { color: #535266 !important; }
+.activity-search input::placeholder { color: #626174; opacity: 1; }

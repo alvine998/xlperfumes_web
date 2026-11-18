@@ -11,10 +11,11 @@ import {
 import {
   Check,
   Plus,
+  Pencil,
+  Power,
   Search,
   ShieldCheck,
   Trash2,
-  UserRoundPen,
   UsersRound,
   X,
 } from "lucide-react";
@@ -95,7 +96,9 @@ export function UsersManagement() {
       .finally(() => {
         if (isCurrent) setIsLoading(false);
       });
-    return () => { isCurrent = false; };
+    return () => {
+      isCurrent = false;
+    };
   }, []);
 
   const activeCount = users.filter((user) => user.isActive).length;
@@ -212,9 +215,6 @@ export function UsersManagement() {
           <p>Atur akun dan peran tim XL Perfumes.</p>
         </div>
         <div className="users-heading-actions">
-          <span className="report-updated">
-            <span className="live-indicator" /> TERHUBUNG KE API
-          </span>
           <button
             className="users-primary-button"
             type="button"
@@ -354,7 +354,9 @@ export function UsersManagement() {
             },
             {
               id: "actions",
-              header: <span className="sr-only">Aksi</span>,
+              header: "AKSI",
+              headerClassName: "user-actions-heading",
+              className: "user-actions-cell",
               renderCell: (user) => (
                 <div className="user-row-actions">
                   <button
@@ -362,7 +364,7 @@ export function UsersManagement() {
                     type="button"
                     onClick={() => openEdit(user)}
                   >
-                    <UserRoundPen size={14} aria-hidden="true" />
+                    <Pencil size={14} aria-hidden="true" />
                     Edit
                   </button>
                   <button
@@ -370,6 +372,7 @@ export function UsersManagement() {
                     type="button"
                     onClick={() => void handleToggleStatus(user)}
                   >
+                    <Power size={14} aria-hidden="true" />
                     {user.isActive ? "Nonaktifkan" : "Aktifkan"}
                   </button>
                   <button

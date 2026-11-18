@@ -208,7 +208,7 @@ export function ActivityLogs() {
           <span>Data terbaru diurutkan pertama</span>
         </footer>
       </section>
-      <DashboardFooter />
+      <DashboardFooter section="LOG AKTIVITAS" />
     </div>
   );
 }

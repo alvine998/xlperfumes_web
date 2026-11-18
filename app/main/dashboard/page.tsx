@@ -1,17 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import {
-  ChartNoAxesColumnIncreasing,
-  ClipboardList,
-  LayoutDashboard,
-  MapPin,
-  Package,
-  ShieldCheck,
-  Store,
-  UsersRound,
-} from "lucide-react";
+import { Suspense } from "react";
+import { MainSidebar } from "../main-sidebar";
+import { requireAnyFeatureAccess } from "@/lib/server-permissions";
+import { MainContentLoading } from "../main-content-loading";
 import { AnalyticsDashboard } from "./analytics-dashboard";
-import { NotificationModal } from "./notification-modal";
+import { NotificationDropdown } from "./notification-dropdown";
 import { TodayLabel } from "./today-label";
 import { ProfileMenu } from "../profile-menu";
 import "../../../styles/dashboard.css";
@@ -25,76 +18,7 @@ export const metadata: Metadata = {
 export default function DashboardPage() {
   return (
     <main className="dashboard-shell">
-      <aside className="dashboard-sidebar" aria-label="Navigasi utama">
-        <Link
-          className="dashboard-brand"
-          href="/"
-          aria-label="XL Perfumes beranda"
-        >
-          <span className="dashboard-brand-mark">XL</span>
-          <span>PERFUMES</span>
-        </Link>
-
-        <div className="sidebar-label">MANAJEMEN</div>
-        <nav className="dashboard-nav">
-          <a
-            className="dashboard-nav-link is-active"
-            href="#overview"
-            aria-current="page"
-          >
-            <span className="nav-icon">
-              <LayoutDashboard aria-hidden="true" />
-            </span>
-            Ringkasan
-          </a>
-          <a className="dashboard-nav-link" href="#stats">
-            <span className="nav-icon">
-              <Package aria-hidden="true" />
-            </span>
-            Status Stok
-          </a>
-          <a className="dashboard-nav-link" href="#sales">
-            <span className="nav-icon">
-              <ChartNoAxesColumnIncreasing aria-hidden="true" />
-            </span>
-            Penjualan
-          </a>
-          <a className="dashboard-nav-link" href="#filters">
-            <span className="nav-icon">
-              <MapPin aria-hidden="true" />
-            </span>
-            Filter Cabang
-          </a>
-          <Link className="dashboard-nav-link" href="/main/stores">
-            <span className="nav-icon">
-              <Store aria-hidden="true" />
-            </span>
-            Daftar Toko
-          </Link>
-          <Link className="dashboard-nav-link" href="/main/users">
-            <span className="nav-icon">
-              <UsersRound aria-hidden="true" />
-            </span>
-            Pengguna
-          </Link>
-          <Link className="dashboard-nav-link" href="/main/roles">
-            <span className="nav-icon"><ShieldCheck aria-hidden="true" /></span>
-            Akses Peran
-          </Link>
-          <Link className="dashboard-nav-link" href="/main/activity-logs">
-            <span className="nav-icon">
-              <ClipboardList aria-hidden="true" />
-            </span>
-            Log Aktivitas
-          </Link>
-        </nav>
-
-        {/* <div className="sidebar-note">
-          <span className="sidebar-note-mark">✳</span>
-          <p>Data yang jelas.<br />Keputusan yang lebih baik.</p>
-        </div> */}
-        {/* <div className="sidebar-foot"><span className="sidebar-status-dot" /> SISTEM OPERASIONAL</div> */}
-      </aside>
+      <MainSidebar />
 
       <div className="dashboard-main" id="overview">
         <header className="dashboard-topbar">
@@ -103,13 +27,20 @@ export default function DashboardPage() {
           </div>
           <div className="topbar-right">
             <TodayLabel />
-            <NotificationModal />
+            <NotificationDropdown />
             <ProfileMenu />
           </div>
         </header>
 
-        <AnalyticsDashboard />
+        <Suspense fallback={<MainContentLoading />}>
+          <AuthorizedDashboard />
+        </Suspense>
       </div>
     </main>
   );
+}
+
+async function AuthorizedDashboard() {
+  const permissions = await requireAnyFeatureAccess(["overview", "inventory", "sales"]);
+  return <AnalyticsDashboard permissions={permissions} />;
 }

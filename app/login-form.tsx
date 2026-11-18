@@ -69,6 +69,16 @@ export function LoginForm() {
         <span>{isSubmitting ? "Signing in…" : "Sign in"}</span>
         <ArrowUpRight aria-hidden="true" />
       </button>
+      {isSubmitting && (
+        <div
+          className="login-progress"
+          role="progressbar"
+          aria-label="Signing in"
+          aria-valuetext="Request in progress"
+        >
+          <span className="login-progress-indicator" />
+        </div>
+      )}
     </form>
   );
 }

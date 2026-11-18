@@ -133,7 +133,7 @@ export function RolesManagement() {
 
       <div className="roles-notice" role="note">
         <ShieldCheck aria-hidden="true" />
-        <p><strong>Pengaturan akses fitur</strong><span>Perubahan disimpan ke API dan berlaku sebagai akses RBAC.</span></p>
+        <p><strong>Pengaturan akses fitur</strong><span>Perubahan disimpan ke API dan berlaku sebagai akses RBAC. Minimal satu akun aktif harus tetap bisa mengelola peran.</span></p>
       </div>
 
       <section className="roles-card" aria-labelledby="roles-matrix-title">
@@ -149,12 +149,12 @@ export function RolesManagement() {
             <thead>
               <tr>
                 <th scope="col">Fitur</th>
-                {USER_ROLES.map((role) => <th scope="col" key={role}>{ROLE_LABELS[role]}</th>)}
+                {USER_ROLES.map((role) => <th scope="col" className={`roles-role-header roles-role-${role}`} key={role}>{ROLE_LABELS[role]}</th>)}
               </tr>
             </thead>
             <tbody>
               {FEATURES.map((feature) => (
-                <tr key={feature.key}>
+                <tr key={feature.key} className={`roles-feature-${feature.key}`}>
                   <th scope="row"><span>{feature.label}</span><small>{feature.description}</small></th>
                   {USER_ROLES.map((role) => (
                     <td key={role}>

@@ -14,8 +14,8 @@
 }
 
 .app-modal-panel {
-  border: 1px solid #f6f8f3;
+  border: 1px solid #e3e6e1;
   border-radius: 18px;
   background: var(--dashboard-paper);
-  box-shadow: 12px 12px 28px #cbd2c8, -8px -8px 20px #ffffffd9;
+  box-shadow: 12px 12px 28px #cbd2c8;
 }

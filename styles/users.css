@@ -765,10 +765,10 @@
   text-decoration: none;
 }
 .users-dialog {
-  border: 1px solid #f6f8f3;
+  border: 1px solid #e3e6e1;
   border-radius: 18px;
   background: #fff;
-  box-shadow: 12px 12px 28px #cbd2c8, -8px -8px 20px #ffffffd9;
+  box-shadow: 12px 12px 28px #cbd2c8;
 }
 .users-dialog::backdrop { background: #22291f66; backdrop-filter: blur(4px); }
 .users-primary-button {
@@ -811,3 +811,53 @@
 @media (prefers-reduced-motion: reduce) {
   .users-summary-card { transition: none; }
 }
+
+/* Keep row actions aligned and reserve enough room for their labels. */
+.users-table .user-actions-heading,
+.users-table .user-actions-cell {
+  width: 290px;
+  min-width: 290px;
+}
+.users-table .user-actions-heading {
+  text-align: left;
+}
+.user-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+.users-content .user-row-action {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  padding: 0 10px;
+  line-height: 1;
+  white-space: nowrap;
+}
+.users-content .user-row-action svg {
+  display: block;
+  flex: 0 0 auto;
+}
+.users-content .user-delete-action {
+  border-color: #e6c9c3;
+  color: #813f34;
+}
+.users-content .user-delete-action:hover {
+  border-color: #c58a7d;
+  color: #6b3028;
+  background: #fff3f0;
+}
+.user-identity small,
+.user-last-active,
+.user-status.is-inactive,
+.users-summary-note,
+.users-table-header p,
+.users-table-footer,
+.users-dialog-header p,
+.users-dialog-note { color: #535266 !important; }
+.users-search input::placeholder,
+.users-form-field input::placeholder { color: #626174; opacity: 1; }

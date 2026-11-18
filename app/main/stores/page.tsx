@@ -1,16 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import {
-  ChartNoAxesColumnIncreasing,
-  ClipboardList,
-  LayoutDashboard,
-  MapPin,
-  Package,
-  ShieldCheck,
-  Store as StoreIcon,
-  UsersRound,
-} from "lucide-react";
-import { NotificationModal } from "../dashboard/notification-modal";
+import { Suspense } from "react";
+import { MainSidebar } from "../main-sidebar";
+import { requireFeatureAccess } from "@/lib/server-permissions";
+import { MainContentLoading } from "../main-content-loading";
+import { NotificationDropdown } from "../dashboard/notification-dropdown";
 import { TodayLabel } from "../dashboard/today-label";
 import { ProfileMenu } from "../profile-menu";
 import { StoresManagement } from "./stores-management";
@@ -25,69 +18,7 @@ export const metadata: Metadata = {
 export default function StoresPage() {
   return (
     <main className="dashboard-shell">
-      <aside className="dashboard-sidebar" aria-label="Navigasi utama">
-        <Link
-          className="dashboard-brand"
-          href="/"
-          aria-label="XL Perfumes beranda"
-        >
-          <span className="dashboard-brand-mark">XL</span>
-          <span>PERFUMES</span>
-        </Link>
-        <div className="sidebar-label">MANAJEMEN</div>
-        <nav className="dashboard-nav">
-          <Link className="dashboard-nav-link" href="/main/dashboard">
-            <span className="nav-icon">
-              <LayoutDashboard aria-hidden="true" />
-            </span>
-            Ringkasan
-          </Link>
-          <Link className="dashboard-nav-link" href="/main/dashboard#stats">
-            <span className="nav-icon">
-              <Package aria-hidden="true" />
-            </span>
-            Status Stok
-          </Link>
-          <Link className="dashboard-nav-link" href="/main/dashboard#sales">
-            <span className="nav-icon">
-              <ChartNoAxesColumnIncreasing aria-hidden="true" />
-            </span>
-            Penjualan
-          </Link>
-          <Link className="dashboard-nav-link" href="/main/dashboard#filters">
-            <span className="nav-icon">
-              <MapPin aria-hidden="true" />
-            </span>
-            Filter Cabang
-          </Link>
-          <Link
-            className="dashboard-nav-link is-active"
-            href="/main/stores"
-            aria-current="page"
-          >
-            <span className="nav-icon">
-              <StoreIcon aria-hidden="true" />
-            </span>
-            Daftar Toko
-          </Link>
-          <Link className="dashboard-nav-link" href="/main/users">
-            <span className="nav-icon">
-              <UsersRound aria-hidden="true" />
-            </span>
-            Pengguna
-          </Link>
-          <Link className="dashboard-nav-link" href="/main/roles">
-            <span className="nav-icon"><ShieldCheck aria-hidden="true" /></span>
-            Akses Peran
-          </Link>
-          <Link className="dashboard-nav-link" href="/main/activity-logs">
-            <span className="nav-icon">
-              <ClipboardList aria-hidden="true" />
-            </span>
-            Log Aktivitas
-          </Link>
-        </nav>
-      </aside>
+      <MainSidebar />
       <div className="dashboard-main">
         <header className="dashboard-topbar">
           <div className="breadcrumb">
@@ -95,12 +26,19 @@ export default function StoresPage() {
           </div>
           <div className="topbar-right">
             <TodayLabel />
-            <NotificationModal />
+            <NotificationDropdown />
             <ProfileMenu />
           </div>
         </header>
-        <StoresManagement />
+        <Suspense fallback={<MainContentLoading />}>
+          <AuthorizedStores />
+        </Suspense>
       </div>
     </main>
   );
+}
+
+async function AuthorizedStores() {
+  await requireFeatureAccess("stores");
+  return <StoresManagement />;
 }
