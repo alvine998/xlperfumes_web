@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   MapPin,
   Package,
+  ShieldCheck,
   Store,
   UsersRound,
 } from "lucide-react";
@@ -37,6 +38,7 @@ export default function ActivityLogsPage() {
           <Link className="dashboard-nav-link" href="/main/dashboard#filters"><span className="nav-icon"><MapPin aria-hidden="true" /></span>Filter Cabang</Link>
           <Link className="dashboard-nav-link" href="/main/stores"><span className="nav-icon"><Store aria-hidden="true" /></span>Daftar Toko</Link>
           <Link className="dashboard-nav-link" href="/main/users"><span className="nav-icon"><UsersRound aria-hidden="true" /></span>Pengguna</Link>
+          <Link className="dashboard-nav-link" href="/main/roles"><span className="nav-icon"><ShieldCheck aria-hidden="true" /></span>Akses Peran</Link>
           <Link className="dashboard-nav-link is-active" href="/main/activity-logs" aria-current="page"><span className="nav-icon"><ClipboardList aria-hidden="true" /></span>Log Aktivitas</Link>
         </nav>
       </aside>

@@ -92,9 +92,22 @@
   background: #fff;
   box-shadow: inset 2px 2px 4px #d9ded8, inset -2px -2px 4px #ffffffc9;
 }
+.activity-count { color: #5745bf; }
+.activity-count svg { color: #805fe0; }
+.activity-table-header h2 { text-decoration: underline; text-decoration-color: #d5cdf7; text-decoration-thickness: 3px; text-underline-offset: 6px; }
+.activity-table thead { background: #f7f5ff; }
+.activity-table tbody tr:nth-child(4n + 1) { background: #fdfcff; }
+.activity-table tbody tr:nth-child(4n + 3) { background: #fbfefd; }
+.activity-table tbody tr:nth-child(5n + 1) .activity-action { color: #5946b9; background: #f1edff; }
+.activity-table tbody tr:nth-child(5n + 2) .activity-action { color: #147c83; background: #eafafa; }
+.activity-table tbody tr:nth-child(5n + 3) .activity-action { color: #aa3f78; background: #fff0f7; }
+.activity-table tbody tr:nth-child(5n + 4) .activity-action { color: #9f6912; background: #fff7e6; }
+.activity-table tbody tr:nth-child(5n) .activity-action { color: #367c46; background: #eef9f0; }
+.activity-clear-filters { color: #5745bf; }
+.activity-clear-filters:hover { color: #4634a8; background: #f2efff; }
 .activity-content button:focus-visible,
 .activity-content input:focus-visible,
 .activity-content select:focus-visible {
-  outline: 3px solid #526645;
+  outline: 3px solid #6654d9;
   outline-offset: 3px;
 }

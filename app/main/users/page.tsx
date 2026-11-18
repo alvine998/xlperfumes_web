@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   MapPin,
   Package,
+  ShieldCheck,
   Store,
   UsersRound,
 } from "lucide-react";
@@ -75,6 +76,10 @@ export default function UsersPage() {
               <UsersRound aria-hidden="true" />
             </span>
             Pengguna
+          </Link>
+          <Link className="dashboard-nav-link" href="/main/roles">
+            <span className="nav-icon"><ShieldCheck aria-hidden="true" /></span>
+            Akses Peran
           </Link>
           <Link className="dashboard-nav-link" href="/main/activity-logs">
             <span className="nav-icon">

@@ -771,10 +771,41 @@
   box-shadow: 12px 12px 28px #cbd2c8, -8px -8px 20px #ffffffd9;
 }
 .users-dialog::backdrop { background: #22291f66; backdrop-filter: blur(4px); }
+.users-primary-button {
+  border-color: #5646bf;
+  background: linear-gradient(135deg, #765de3, #427ddc);
+  box-shadow: 4px 4px 9px #d0c9e8, -4px -4px 9px #ffffff;
+}
+.users-primary-button:hover { border-color: #4938ae; background: linear-gradient(135deg, #684ed5, #356ecb); }
+.users-summary-card:nth-child(3n + 1) .users-summary-icon {
+  color: #6c53cf;
+  background: color-mix(in srgb, white 91%, #8f72e8);
+}
+.users-summary-card:nth-child(3n + 2) .users-summary-icon {
+  color: #118d91;
+  background: color-mix(in srgb, white 91%, #48c5c0);
+}
+.users-summary-card:nth-child(3n) .users-summary-icon {
+  color: #d08a19;
+  background: color-mix(in srgb, white 91%, #f1c55e);
+}
+.users-summary-card:nth-child(3n + 2) .users-summary-icon-green { color: #288c53; }
+.users-summary-card:nth-child(3n) .users-summary-icon-gold { color: #bb7e16; }
+.users-table-header h2 { text-decoration: underline; text-decoration-color: #d5cdf7; text-decoration-thickness: 3px; text-underline-offset: 6px; }
+.users-table thead { background: #f7f5ff; }
+.users-table tbody tr:nth-child(4n + 1) { background: #fdfcff; }
+.users-table tbody tr:nth-child(4n + 3) { background: #fbfefd; }
+.user-role-owner { border-color: #f2d49a; color: #9f6912; background: #fff7e6; }
+.user-role-admin { border-color: #d7d0fa; color: #5946b9; background: #f3f0ff; }
+.user-role-gudang { border-color: #c8e5e7; color: #147c83; background: #eafafa; }
+.user-role-collect { border-color: #f3cce1; color: #aa3f78; background: #fff0f7; }
+.user-role-spg { border-color: #c9e4ce; color: #367c46; background: #eef9f0; }
+.user-status.is-active { color: #27864b; }
+.user-status.is-active > span { background: #35ad64; }
 .users-content button:focus-visible,
 .users-content input:focus-visible,
 .users-content select:focus-visible {
-  outline: 3px solid #526645;
+  outline: 3px solid #6654d9;
   outline-offset: 3px;
 }
 @media (prefers-reduced-motion: reduce) {

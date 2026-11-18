@@ -259,11 +259,38 @@
   box-shadow: 12px 12px 28px #cbd2c8, -8px -8px 20px #ffffffd9;
 }
 .stores-dialog::backdrop { background: #22291f66; backdrop-filter: blur(4px); }
+.stores-summary-card:first-child .stores-summary-icon {
+  color: #6c53cf;
+  background: color-mix(in srgb, white 91%, #8f72e8);
+}
+.stores-summary-card:last-child .stores-summary-icon {
+  color: #118d91;
+  background: color-mix(in srgb, white 91%, #48c5c0);
+}
+.stores-primary-button,
+.stores-location-button {
+  border-color: #5646bf;
+  background: linear-gradient(135deg, #765de3, #427ddc);
+  box-shadow: 4px 4px 9px #d0c9e8, -4px -4px 9px #ffffff;
+}
+.stores-primary-button:hover,
+.stores-location-button:hover {
+  border-color: #4938ae;
+  background: linear-gradient(135deg, #684ed5, #356ecb);
+}
+.stores-table-header h2 { text-decoration: underline; text-decoration-color: #d5cdf7; text-decoration-thickness: 3px; text-underline-offset: 6px; }
+.stores-table-header h2 > span { color: #5745bf; background: #eeeaff; }
+.store-branch { border-color: #d9d0fb; color: #5645bb; background: #f3f0ff; }
+.store-location-link { color: #087f7e; }
+.store-row-action { border-color: #d8d2f0; color: #5746bd; }
+.store-row-action:hover { border-color: #b9a9ef; color: #4634a8; background: #f2efff; }
+.stores-table tbody tr:nth-child(4n + 1) { background: #fdfcff; }
+.stores-table tbody tr:nth-child(4n + 3) { background: #fbfefd; }
 .stores-content button:focus-visible,
 .stores-content input:focus-visible,
 .stores-content textarea:focus-visible,
 .stores-content select:focus-visible {
-  outline: 3px solid #526645;
+  outline: 3px solid #6654d9;
   outline-offset: 3px;
 }
 @media (prefers-reduced-motion: reduce) {

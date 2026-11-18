@@ -27,7 +27,7 @@ export function VariantSalesChart({ data }: VariantSalesChartProps) {
       type: "bar",
       toolbar: { show: false },
       fontFamily: "Arial, sans-serif",
-      foreColor: "#898477",
+      foreColor: "#62617a",
       animations: { enabled: true, speed: 350 },
     },
     plotOptions: {
@@ -39,7 +39,7 @@ export function VariantSalesChart({ data }: VariantSalesChartProps) {
         distributed: true,
       },
     },
-    colors: ["#687052", "#85886b", "#a3a083", "#b9a985", "#c5bda9"],
+    colors: ["#765de3", "#4384df", "#20a69b", "#e4aa37", "#dc628d"],
     dataLabels: {
       enabled: true,
       textAnchor: "start",
@@ -61,7 +61,7 @@ export function VariantSalesChart({ data }: VariantSalesChartProps) {
     },
     yaxis: { labels: { style: { fontSize: "13px", colors: ["#555347"] } } },
     grid: {
-      borderColor: "#ece8df",
+      borderColor: "#e6e2f2",
       strokeDashArray: 3,
       xaxis: { lines: { show: true } },
       yaxis: { lines: { show: false } },
