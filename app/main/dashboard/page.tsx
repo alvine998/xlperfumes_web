@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChartNoAxesColumnIncreasing, LayoutDashboard, MapPin, Package, UsersRound } from "lucide-react";
+import { ChartNoAxesColumnIncreasing, LayoutDashboard, MapPin, Package, Store, UsersRound } from "lucide-react";
 import { AnalyticsDashboard } from "./analytics-dashboard";
 import { NotificationModal } from "./notification-modal";
 import { TodayLabel } from "./today-label";
@@ -27,6 +27,7 @@ export default function DashboardPage() {
           <a className="dashboard-nav-link" href="#stats"><span className="nav-icon"><Package aria-hidden="true" /></span>Status Stok</a>
           <a className="dashboard-nav-link" href="#sales"><span className="nav-icon"><ChartNoAxesColumnIncreasing aria-hidden="true" /></span>Penjualan</a>
           <a className="dashboard-nav-link" href="#filters"><span className="nav-icon"><MapPin aria-hidden="true" /></span>Filter Cabang</a>
+          <Link className="dashboard-nav-link" href="/main/stores"><span className="nav-icon"><Store aria-hidden="true" /></span>Daftar Toko</Link>
           <Link className="dashboard-nav-link" href="/main/users"><span className="nav-icon"><UsersRound aria-hidden="true" /></span>Pengguna</Link>
         </nav>
 

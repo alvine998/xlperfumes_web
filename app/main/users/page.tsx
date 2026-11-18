@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChartNoAxesColumnIncreasing, LayoutDashboard, MapPin, Package, UsersRound } from "lucide-react";
+import { ChartNoAxesColumnIncreasing, LayoutDashboard, MapPin, Package, Store, UsersRound } from "lucide-react";
 import { NotificationModal } from "../dashboard/notification-modal";
 import { TodayLabel } from "../dashboard/today-label";
 import { ProfileMenu } from "../profile-menu";
@@ -28,6 +28,7 @@ export default function UsersPage() {
           <Link className="dashboard-nav-link" href="/main/dashboard#stats"><span className="nav-icon"><Package aria-hidden="true" /></span>Status Stok</Link>
           <Link className="dashboard-nav-link" href="/main/dashboard#sales"><span className="nav-icon"><ChartNoAxesColumnIncreasing aria-hidden="true" /></span>Penjualan</Link>
           <Link className="dashboard-nav-link" href="/main/dashboard#filters"><span className="nav-icon"><MapPin aria-hidden="true" /></span>Filter Cabang</Link>
+          <Link className="dashboard-nav-link" href="/main/stores"><span className="nav-icon"><Store aria-hidden="true" /></span>Daftar Toko</Link>
           <Link className="dashboard-nav-link is-active" href="/main/users" aria-current="page"><span className="nav-icon"><UsersRound aria-hidden="true" /></span>Pengguna</Link>
         </nav>
       </aside>

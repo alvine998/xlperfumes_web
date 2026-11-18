@@ -1,7 +1,8 @@
 import { Suspense } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { API_BASE_URL } from "@/lib/api";
+import axios from "axios";
+import { api } from "@/lib/api";
 
 export default function MainLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
@@ -15,13 +16,13 @@ async function AuthenticatedMain({ children }: Readonly<{ children: React.ReactN
   const token = (await cookies()).get("xlperfumes_token")?.value;
   if (!token) redirect("/");
 
-  const response = await fetch(`${API_BASE_URL}/auth/me`, {
-    headers: { cookie: `xlperfumes_token=${token}` },
-    cache: "no-store",
-  });
-  if (response.status === 401) redirect("/");
-  if (!response.ok) {
-    throw new Error(`Unable to verify the current user (HTTP ${response.status}).`);
+  try {
+    await api.get("/auth/me", { headers: { Cookie: `xlperfumes_token=${token}` } });
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error) && error.response?.status === 401) redirect("/");
+    const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+    if (status) throw new Error(`Unable to verify the current user (HTTP ${status}).`);
+    throw error;
   }
 
   return children;

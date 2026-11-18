@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowUpRight, Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
 import { Input } from "@/components/ui/input";
-import { API_BASE_URL, getApiError } from "@/lib/api";
+import { api, getApiError } from "@/lib/api";
 
 export function LoginForm() {
   const router = useRouter();
@@ -20,19 +20,13 @@ export function LoginForm() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ username, password }),
-      });
-      if (!response.ok) throw new Error(await getApiError(response));
+      await api.post("/auth/login", { username, password });
 
       toast.success("Berhasil masuk.");
       router.replace("/main/dashboard");
       router.refresh();
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Unable to sign in.");
+    } catch (error: unknown) {
+      toast.error(getApiError(error));
     } finally {
       setIsSubmitting(false);
     }

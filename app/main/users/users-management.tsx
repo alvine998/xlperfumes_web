@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Check, Plus, Search, ShieldCheck, Trash2, UserRoundPen, UsersRound, X } from "lucide-react";
 import toast from "react-hot-toast";
-import { API_BASE_URL, getApiError } from "@/lib/api";
+import { api, getApiError } from "@/lib/api";
 import { isUser, USER_ROLES, type User, type UserRole } from "@/lib/users";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -11,16 +11,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 async function requestUser(path: string, method: string, body?: Record<string, unknown>) {
-  const response = await fetch(`${API_BASE_URL}/users${path}`, {
-    method,
-    credentials: "include",
-    headers: body ? { "Content-Type": "application/json" } : undefined,
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  if (!response.ok) throw new Error(await getApiError(response));
+  const response = await api.request<unknown>({ url: `/users${path}`, method, data: body });
   if (response.status === 204) return null;
 
-  const payload: unknown = await response.json();
+  const payload = response.data;
   if (!isRecord(payload) || !isUser(payload.user)) {
     throw new Error("The API returned an invalid user record.");
   }
@@ -53,10 +47,9 @@ export function UsersManagement() {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch(`${API_BASE_URL}/users`, { credentials: "include", signal: controller.signal })
-      .then(async (response) => {
-        if (!response.ok) throw new Error(await getApiError(response));
-        const payload: unknown = await response.json();
+    api.get<unknown>("/users", { signal: controller.signal })
+      .then(({ data }) => {
+        const payload = data;
         if (!isRecord(payload) || !Array.isArray(payload.users) || !payload.users.every(isUser)) {
           throw new Error("The API returned an invalid user list.");
         }
@@ -64,8 +57,7 @@ export function UsersManagement() {
       })
       .catch((cause: unknown) => {
         if (cause instanceof DOMException && cause.name === "AbortError") return;
-        const message = cause instanceof Error ? cause.message : "Unable to load users.";
-        setError(message);
+        setError(getApiError(cause));
       })
       .finally(() => setIsLoading(false));
     return () => controller.abort();

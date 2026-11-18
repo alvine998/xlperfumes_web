@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown } from "lucide-react";
+import axios from "axios";
 import toast from "react-hot-toast";
-import { API_BASE_URL, getApiError } from "@/lib/api";
+import { api, getApiError } from "@/lib/api";
 import { isUser, type User } from "@/lib/users";
 
 export function ProfileMenu() {
@@ -12,10 +13,10 @@ export function ProfileMenu() {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/auth/me`, { credentials: "include" })
-      .then(async (response) => {
-        if (!response.ok) throw new Error(await getApiError(response));
-        const payload: unknown = await response.json();
+    const controller = new AbortController();
+    api.get<unknown>("/auth/me", { signal: controller.signal })
+      .then(({ data }) => {
+        const payload = data;
         if (
           typeof payload !== "object" ||
           payload === null ||
@@ -27,21 +28,19 @@ export function ProfileMenu() {
         setUser(payload.user);
       })
       .catch((error: unknown) => {
-        toast.error(error instanceof Error ? error.message : "Unable to load profile.");
+        if (axios.isCancel(error)) return;
+        toast.error(getApiError(error));
       });
+    return () => controller.abort();
   }, []);
 
   async function handleLogout() {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
-      if (!response.ok) throw new Error(await getApiError(response));
+      await api.post("/auth/logout");
       router.replace("/");
       router.refresh();
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Unable to sign out.");
+    } catch (error: unknown) {
+      toast.error(getApiError(error));
     }
   }
 

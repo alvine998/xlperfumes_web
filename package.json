@@ -11,16 +11,21 @@
   },
   "dependencies": {
     "apexcharts": "^8.9.0",
+    "axios": "^1.21.1",
+    "jspdf": "^4.2.1",
     "lucide-react": "^1.74.0",
     "next": "16.4.6",
+    "qrcode": "^1.5.4",
     "react": "19.3.0",
     "react-apexcharts": "^2.2.1",
     "react-dom": "19.3.0",
-    "react-hot-toast": "^2.6.1"
+    "react-hot-toast": "^2.6.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "4.3.3",
     "@types/node": "^20",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
