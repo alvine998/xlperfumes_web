@@ -1,9 +1,9 @@
 .dashboard-shell {
-  --dashboard-ink: #292820;
-  --dashboard-muted: #898477;
-  --dashboard-line: #e7e2d8;
-  --dashboard-paper: #f8f7f3;
-  --dashboard-olive: #424534;
+  --dashboard-ink: #20221b;
+  --dashboard-muted: #5e6055;
+  --dashboard-line: #d8d8ce;
+  --dashboard-paper: #ffffff;
+  --dashboard-olive: #343a2c;
   min-height: 100vh;
   display: grid;
   grid-template-columns: 238px minmax(0, 1fr);
@@ -335,7 +335,7 @@
   gap: 20px;
   border: 1px solid var(--dashboard-line);
   padding: 13px 17px;
-  background: #fcfbf8;
+  background: #ffffff;
 }
 .filter-heading {
   display: flex;
@@ -452,7 +452,7 @@
   overflow: hidden;
   border: 1px solid var(--dashboard-line);
   padding: 14px 15px 12px;
-  background: #fcfbf8;
+  background: #ffffff;
 }
 .status-card::after {
   position: absolute;
@@ -540,7 +540,7 @@
   margin-top: 28px;
   border: 1px solid var(--dashboard-line);
   padding: 19px 20px 12px;
-  background: #fcfbf8;
+  background: #ffffff;
 }
 .sales-heading {
   align-items: center;
@@ -597,7 +597,7 @@
   margin-top: 17px;
   border: 1px solid var(--dashboard-line);
   padding: 19px 20px 12px;
-  background: #fcfbf8;
+  background: #ffffff;
 }
 .monthly-total {
   display: grid;
@@ -942,3 +942,54 @@
 .notification-item time { color: #a19b8e; font-size: 9px; }
 .notification-footer { padding: 11px 21px; color: #a19b8e; font-size: 9px; text-align: center; }
 .notification-dialog button:focus-visible { outline: 2px solid #8c896e; outline-offset: 3px; }
+
+/* High contrast and larger touch targets for day-to-day field operations. */
+.dashboard-brand { font-size: 12px; }
+.sidebar-label { color: #d8d9d0; font-size: 11px; }
+.topbar-date, .breadcrumb { color: #4f5248; font-size: 11px; }
+.dashboard-nav-link { min-height: 48px; color: #f0f1eb; font-size: 15px; }
+.sidebar-foot { color: #d6d8cf; font-size: 10px; }
+.dashboard-eyebrow { color: #55594b; font-size: 11px; letter-spacing: .12em; }
+.dashboard-heading h1 { font-family: inherit; font-size: clamp(32px, 3vw, 42px); font-weight: 700; letter-spacing: -.035em; }
+.dashboard-heading p { color: #4e5048; font-family: inherit; font-size: 15px; line-height: 1.55; }
+.report-updated { color: #4f5248; font-size: 11px; letter-spacing: .06em; }
+.topbar-profile-copy strong, .profile-dropdown-heading strong { font-size: 14px; }
+.topbar-profile-copy small, .profile-dropdown-heading small { color: #55584e; font-size: 12px; }
+.profile-dropdown-panel > a, .profile-dropdown-panel > button { min-height: 42px; font-size: 14px; }
+.icon-button { width: 42px; height: 42px; border-color: #c8cabe; color: #34382b; background: #fff; transition: background .16s, border-color .16s, transform .16s; }
+.icon-button:hover { border-color: #737b5c; background: #f0f2e9; transform: translateY(-1px); }
+.icon-button svg { width: 19px; height: 19px; }
+.dashboard-heading h1, .section-heading h2 { color: #20221b; }
+.filter-heading strong { font-size: 14px; }
+.filter-heading small { color: #55584e; font-size: 12px; }
+.filter-field > span { color: #4d5046; font-size: 11px; letter-spacing: .04em; }
+.filter-field input, .filter-field select { height: 44px; border-color: #bfc2b5; color: #20221b; background: #fff; font-size: 14px; }
+.section-heading h2 { font-family: inherit; font-size: 25px; font-weight: 700; letter-spacing: -.02em; }
+.period-caption, .chart-period { color: #4f5248; font-size: 12px; }
+.status-card-label { color: #41443b; font-size: 12px; letter-spacing: .045em; }
+.status-count { color: #20221b; font-family: inherit; font-size: 32px; font-weight: 700; }
+.status-count small, .status-note, .sales-description, .monthly-chart-empty { color: #55584e; font-size: 12px; }
+.sales-description strong { color: #30332b; font-weight: 700; }
+.chart-footnote, .dashboard-footer { color: #5b5d53; font-size: 11px; letter-spacing: .06em; }
+.monthly-total > span { color: #4f5248; font-size: 11px; }
+.monthly-total strong { font-family: inherit; font-size: 24px; font-weight: 700; }
+.monthly-total small { color: #55584e; font-size: 12px; }
+.notification-actions, .notification-item p { color: #4f5248; font-size: 13px; }
+.notification-actions button { min-height: 40px; color: #3e4930; font-size: 13px; text-decoration: underline; text-underline-offset: 3px; }
+.notification-item strong { font-size: 14px; }
+.notification-item time, .notification-footer { color: #5e6057; font-size: 11px; }
+.notification-close { width: 40px; height: 40px; color: #34382b; background: #fff; }
+.notification-close:hover { background: #f0f2e9; }
+.dashboard-shell button, .dashboard-shell a, .dashboard-shell input, .dashboard-shell select { -webkit-tap-highlight-color: transparent; }
+.dashboard-shell button:focus-visible, .dashboard-shell a:focus-visible, .dashboard-shell input:focus-visible, .dashboard-shell select:focus-visible { outline: 3px solid #68764d; outline-offset: 3px; }
+@media (max-width: 760px) {
+  .dashboard-nav-link { min-height: 58px; font-size: 11px; }
+  .filter-field input, .filter-field select { height: 44px; min-width: 0; padding: 0 9px; font-size: 14px; }
+  .status-card-label { font-size: 11px; }
+  .status-note { font-size: 11px; }
+  .dashboard-footer { font-size: 10px; }
+}
+@media (max-width: 380px) {
+  .breadcrumb { font-size: 10px; }
+  .dashboard-footer { font-size: 9px; }
+}

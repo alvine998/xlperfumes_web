@@ -1,5 +1,5 @@
 .users-content {
-  --users-card: #fcfbf8;
+  --users-card: #ffffff;
 }
 .users-page-heading {
   margin-bottom: 24px;
@@ -175,7 +175,7 @@
   border: 1px solid var(--dashboard-line);
   border-radius: 2px;
   color: #898477;
-  background: #f8f7f3;
+  background: #ffffff;
 }
 .users-search {
   width: 202px;
@@ -220,7 +220,7 @@
   text-align: left;
 }
 .users-table thead {
-  background: #f7f6f1;
+  background: #ffffff;
 }
 .users-table th {
   height: 39px;
@@ -458,7 +458,7 @@
   border-radius: 2px;
   padding: 0 10px;
   color: var(--dashboard-ink);
-  background: #fcfbf8;
+  background: #ffffff;
   font: inherit;
   font-size: 11px;
 }

@@ -1,4 +1,4 @@
-.stores-content { --stores-card: #fcfbf8; }
+.stores-content { --stores-card: #ffffff; }
 .stores-page-heading { margin-bottom: 24px; }
 .stores-heading-actions { display: flex; align-items: center; gap: 16px; padding-bottom: 2px; }
 .stores-heading-actions .report-updated { padding: 0; }
@@ -105,3 +105,75 @@
   .stores-table-footer { align-items: start; flex-direction: column; justify-content: center; gap: 4px; padding: 9px 13px; }
 }
 @media (max-width: 390px) { .stores-heading-actions { align-items: start; flex-direction: column; } .stores-summary-note { max-width: 92px; line-height: 1.4; } .stores-coordinate-grid { grid-template-columns: 1fr; } }
+
+/* Clearer labels and touch-friendly controls for store teams in the field. */
+.stores-content { --stores-card: #fff; }
+.stores-primary-button, .stores-secondary-button, .stores-export-button, .stores-location-button {
+  min-height: 44px;
+  border: 1px solid #39422f;
+  border-radius: 8px;
+  padding: 0 16px;
+  color: #fff;
+  background: #39422f;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 2px 4px #20221b18;
+  transition: background .16s, border-color .16s, box-shadow .16s, transform .16s;
+}
+.stores-primary-button:hover, .stores-location-button:hover { border-color: #293222; background: #293222; box-shadow: 0 4px 10px #20221b24; transform: translateY(-1px); }
+.stores-secondary-button, .stores-export-button { border-color: #aeb3a3; color: #30352a; background: #fff; box-shadow: none; }
+.stores-secondary-button:hover, .stores-export-button:hover { border-color: #717a5e; color: #293222; background: #f1f3ec; }
+.stores-summary-card, .stores-table-section { border-color: #d1d4c9; border-radius: 10px; box-shadow: 0 2px 8px #25281b0a; }
+.stores-summary-card > div > span { color: #4d5046; font-size: 14px; }
+.stores-summary-card strong { color: #20221b; font-family: inherit; font-size: 32px; font-weight: 700; }
+.stores-summary-card strong small { color: #4f5248; font-size: 13px; }
+.stores-summary-note { color: #55584e; font-size: 12px; }
+.stores-summary-icon { border-color: #d5d8cd; color: #48553a; background: #f0f3e9; }
+.stores-summary-icon-gold { color: #665126; background: #f8f1df; }
+.stores-table-header h2 { color: #20221b; font-family: inherit; font-size: 24px; font-weight: 700; letter-spacing: -.02em; }
+.stores-table-header h2 > span { color: #30352a; background: #e9ecdf; font-size: 12px; }
+.stores-table-header p { color: #55584e; font-size: 14px; }
+.stores-search, .stores-select { height: 44px; border-color: #bfc3b7; border-radius: 7px; color: #34382b; background: #fff; }
+.stores-search { gap: 9px; padding: 0 12px; }
+.stores-search svg { width: 18px; height: 18px; }
+.stores-search input, .stores-select select { color: #20221b; font-size: 14px; }
+.stores-search input::placeholder { color: #62655c; }
+.stores-select { padding: 0 10px; }
+.stores-export-button { padding: 0 12px; }
+.stores-table thead { background: #eef0e8; }
+.stores-table th { height: 46px; color: #3f4339; font-size: 12px; letter-spacing: .04em; }
+.stores-table td { height: 86px; color: #34372f; font-size: 14px; }
+.store-name-cell strong { color: #20221b; font-size: 14px; }
+.store-name-cell small, .store-date { color: #55584e !important; font-size: 12px; }
+.store-branch { border-color: #cdd2c2; color: #35402b; background: #eff2e8; font-size: 12px; font-weight: 600; }
+.store-address { color: #41443b !important; line-height: 1.55; }
+.store-location-link { color: #3e5230; font-size: 13px; font-weight: 600; }
+.store-row-actions { gap: 6px; }
+.store-row-action { min-height: 40px; border: 1px solid #cbd0c3; border-radius: 7px; padding: 0 10px; color: #34412c; background: #fff; font-size: 13px; font-weight: 600; text-decoration: none; }
+.store-row-action:hover { border-color: #7c8767; color: #293222; background: #f0f3ea; text-decoration: none; }
+.store-row-action.store-delete-action { border-color: #e0c6c0; color: #813f34; }
+.store-row-action.store-delete-action:hover { border-color: #bd887c; color: #6b3028; background: #fbf0ed; }
+.stores-empty { color: #55584e !important; font-size: 14px !important; }
+.stores-empty strong { color: #292c24; font-family: inherit; font-size: 19px; font-weight: 700; }
+.stores-table-footer { color: #55584e; font-size: 12px; }
+.stores-table-footer strong { color: #292c24; }
+.stores-dialog-header h2 { color: #20221b; font-family: inherit; font-size: 26px; font-weight: 700; }
+.stores-dialog-header p, .stores-location-field > p { color: #4f5248; font-size: 14px; }
+.stores-dialog-fields { gap: 16px; }
+.stores-form-field { gap: 8px; }
+.stores-form-field > span, .stores-location-field legend { color: #34382f; font-size: 14px; font-weight: 700; }
+.stores-form-field input, .stores-form-field textarea { min-height: 46px; border-color: #bfc3b7; border-radius: 7px; color: #20221b; background: #fff; font-size: 15px; }
+.stores-form-field input::placeholder, .stores-form-field textarea::placeholder { color: #62655c; }
+.stores-location-field { border-color: #cbd0c3; border-radius: 8px; }
+.stores-location-button { min-height: 44px; font-size: 14px; }
+.stores-dialog-actions { gap: 10px; }
+.stores-dialog-actions button { min-width: 112px; }
+.stores-dialog-note { color: #55584e; font-size: 12px; }
+.stores-content button:focus-visible, .stores-content input:focus-visible, .stores-content textarea:focus-visible, .stores-content select:focus-visible { outline: 3px solid #68764d; outline-offset: 3px; }
+@media (max-width: 760px) {
+  .stores-heading-actions { gap: 10px; }
+  .stores-summary-card { min-height: 100px; }
+  .stores-toolbar { gap: 9px; }
+  .stores-search, .stores-select, .stores-export-button { min-height: 44px; }
+  .stores-table-footer { font-size: 12px; }
+}
