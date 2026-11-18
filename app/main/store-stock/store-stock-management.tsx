@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   ArrowDown,
   ArrowUp,
@@ -15,11 +16,17 @@ import toast from "react-hot-toast";
 import { api, getApi, getApiError } from "@/lib/api";
 
 type StockRow = {
-  id: number;
+  id: string;
+  storeId: number;
   name: string;
   branch: string;
+  variantId: number;
+  variantName: string;
+  variantQuantity: number;
+  variantUnit: string;
   totalStock: number;
-  lastUpdate: string;
+  lastUpdate: string | null;
+  updatedBy: { id: number; username: string } | null;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -27,22 +34,28 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isStock(value: unknown): value is StockRow {
-  if (typeof value !== "object" || value === null) return false;
+  if (!isRecord(value)) return false;
+  const updatedBy = value.updatedBy;
   return (
-    "id" in value &&
-    typeof value.id === "number" &&
-    "name" in value &&
+    typeof value.id === "string" &&
+    typeof value.storeId === "number" &&
     typeof value.name === "string" &&
-    "branch" in value &&
     typeof value.branch === "string" &&
-    "totalStock" in value &&
+    typeof value.variantId === "number" &&
+    typeof value.variantName === "string" &&
+    typeof value.variantQuantity === "number" &&
+    typeof value.variantUnit === "string" &&
     typeof value.totalStock === "number" &&
-    "lastUpdate" in value &&
-    typeof value.lastUpdate === "string"
+    (value.lastUpdate === null || typeof value.lastUpdate === "string") &&
+    (updatedBy === null ||
+      (isRecord(updatedBy) &&
+        typeof updatedBy.id === "number" &&
+        typeof updatedBy.username === "string"))
   );
 }
 
-function formatDate(value: string) {
+function formatDate(value: string | null) {
+  if (!value) return "Belum diperbarui";
   return new Intl.DateTimeFormat("id-ID", {
     dateStyle: "medium",
     timeStyle: "short",
@@ -99,7 +112,9 @@ export function StoreStockManagement() {
     const query = search.trim().toLocaleLowerCase("id-ID");
     return rows
       .filter((row) => {
-        const updated = new Date(row.lastUpdate).getTime();
+        const updated = row.lastUpdate
+          ? new Date(row.lastUpdate).getTime()
+          : null;
         const start = startDate
           ? new Date(`${startDate}T00:00:00`).getTime()
           : -Infinity;
@@ -107,24 +122,29 @@ export function StoreStockManagement() {
           ? new Date(`${endDate}T23:59:59.999`).getTime()
           : Infinity;
         return (
-          (!query || row.name.toLocaleLowerCase("id-ID").includes(query)) &&
+          (!query ||
+            row.name.toLocaleLowerCase("id-ID").includes(query) ||
+            row.variantName.toLocaleLowerCase("id-ID").includes(query)) &&
           (branch === "all" || row.branch === branch) &&
-          updated >= start &&
-          updated <= end
+          (start === -Infinity && end === Infinity ||
+            updated !== null && updated >= start && updated <= end)
         );
       })
-      .sort((a, b) =>
-        sortOrder === "newest"
-          ? new Date(b.lastUpdate).getTime() - new Date(a.lastUpdate).getTime()
-          : new Date(a.lastUpdate).getTime() - new Date(b.lastUpdate).getTime(),
-      );
+      .sort((a, b) => {
+        if (!a.lastUpdate) return b.lastUpdate ? 1 : 0;
+        if (!b.lastUpdate) return -1;
+        const delta =
+          new Date(a.lastUpdate).getTime() -
+          new Date(b.lastUpdate).getTime();
+        return sortOrder === "newest" ? -delta : delta;
+      });
   }, [rows, search, branch, startDate, endDate, sortOrder]);
 
   async function saveAdjustment() {
     if (!adjustment || quantity < 1) return;
     try {
       const response = await api.patch<{ stock: unknown }>(
-        `/store-stock/${adjustment.row.id}`,
+        `/store-stock/${adjustment.row.storeId}/${adjustment.row.variantId}`,
         {
           direction: adjustment.direction,
           quantity,
@@ -157,7 +177,7 @@ export function StoreStockManagement() {
           <p>Pantau jumlah stok dan riwayat pembaruan di setiap toko.</p>
         </div>
         <span className="store-stock-total">
-          <Package aria-hidden="true" /> {rows.length} TOKO
+          <Package aria-hidden="true" /> {rows.length} ITEM STOK
         </span>
       </section>
 
@@ -169,7 +189,7 @@ export function StoreStockManagement() {
           <div>
             <span className="dashboard-eyebrow">DAFTAR INVENTARIS</span>
             <h2 id="store-stock-table-title">
-              Stok per toko <span>{filteredRows.length}</span>
+              Stok per varian <span>{filteredRows.length}</span>
             </h2>
             <p>
               Gunakan filter untuk melihat pembaruan stok pada rentang waktu
@@ -179,7 +199,7 @@ export function StoreStockManagement() {
           <div className="store-stock-filters">
             <label className="store-stock-search">
               <Search aria-hidden="true" />
-              <span className="sr-only">Cari nama toko</span>
+              <span className="sr-only">Cari nama toko atau varian</span>
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
@@ -245,27 +265,29 @@ export function StoreStockManagement() {
               <tr>
                 <th>Nama Toko</th>
                 <th>Cabang</th>
+                <th>Varian</th>
                 <th>Total Stok</th>
                 <th>Last Update</th>
+                <th>Diperbarui oleh</th>
                 <th>Aksi</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td className="store-stock-state" colSpan={5}>
+                  <td className="store-stock-state" colSpan={7}>
                     Memuat daftar toko…
                   </td>
                 </tr>
               ) : error ? (
                 <tr>
-                  <td className="store-stock-state" colSpan={5} role="alert">
+                  <td className="store-stock-state" colSpan={7} role="alert">
                     Gagal memuat toko: {error}
                   </td>
                 </tr>
               ) : filteredRows.length === 0 ? (
                 <tr>
-                  <td className="store-stock-state" colSpan={5}>
+                  <td className="store-stock-state" colSpan={7}>
                     Tidak ada toko yang cocok dengan filter.
                   </td>
                 </tr>
@@ -279,6 +301,12 @@ export function StoreStockManagement() {
                       <span className="store-stock-branch">{row.branch}</span>
                     </td>
                     <td>
+                      <strong className="store-stock-name">{row.variantName}</strong>
+                      <small className="store-stock-variant-detail">
+                        {row.variantQuantity} {row.variantUnit}
+                      </small>
+                    </td>
+                    <td>
                       <span className="store-stock-quantity">
                         {row.totalStock.toLocaleString("id-ID")}{" "}
                         <small>unit</small>
@@ -286,6 +314,9 @@ export function StoreStockManagement() {
                     </td>
                     <td className="store-stock-date-value">
                       {formatDate(row.lastUpdate)}
+                    </td>
+                    <td className="store-stock-date-value">
+                      {row.updatedBy?.username ?? "—"}
                     </td>
                     <td>
                       <div className="store-stock-actions">
@@ -319,80 +350,84 @@ export function StoreStockManagement() {
         </div>
         <footer className="store-stock-footer">
           Menampilkan <strong>{filteredRows.length}</strong> dari{" "}
-          <strong>{rows.length}</strong> toko
+          <strong>{rows.length}</strong> stok varian
         </footer>
       </section>
 
-      {adjustment && (
-        <div
-          className="store-stock-modal-backdrop"
-          role="presentation"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) setAdjustment(null);
-          }}
-        >
-          <section
-            className="store-stock-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="stock-adjust-title"
+      {adjustment && typeof document !== "undefined" &&
+        createPortal(
+          <div
+            className="store-stock-modal-backdrop"
+            role="presentation"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) setAdjustment(null);
+            }}
           >
-            <span
-              className={`store-stock-modal-icon ${adjustment.direction}`}
-              aria-hidden="true"
+            <section
+              className="store-stock-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="stock-adjust-title"
             >
-              {adjustment.direction === "increase" ? <Plus /> : <Minus />}
-            </span>
-            <h2 id="stock-adjust-title">
-              {adjustment.direction === "increase"
-                ? "Tambah stok"
-                : "Kurangi stok"}
-            </h2>
-            <p>
-              {adjustment.row.name} · {adjustment.row.branch}
-            </p>
-            <label>
-              Jumlah unit
-              <input
-                type="number"
-                min="1"
-                max={
-                  adjustment.direction === "decrease"
-                    ? adjustment.row.totalStock
-                    : undefined
-                }
-                value={quantity}
-                onChange={(event) =>
-                  setQuantity(Math.max(1, Number(event.target.value)))
-                }
-              />
-            </label>
-            {adjustment.direction === "decrease" && (
-              <small>Stok saat ini: {adjustment.row.totalStock} unit</small>
-            )}
-            <div className="store-stock-modal-actions">
-              <button
-                type="button"
-                className="stock-cancel-button"
-                onClick={() => setAdjustment(null)}
+              <span
+                className={`store-stock-modal-icon ${adjustment.direction}`}
+                aria-hidden="true"
               >
-                Batal
-              </button>
-              <button
-                type="button"
-                className="stock-confirm-button"
-                disabled={
-                  adjustment.direction === "decrease" &&
-                  quantity > adjustment.row.totalStock
-                }
-                onClick={saveAdjustment}
-              >
-                Simpan perubahan
-              </button>
-            </div>
-          </section>
-        </div>
-      )}
+                {adjustment.direction === "increase" ? <Plus /> : <Minus />}
+              </span>
+              <h2 id="stock-adjust-title">
+                {adjustment.direction === "increase"
+                  ? "Tambah stok"
+                  : "Kurangi stok"}
+              </h2>
+              <p>
+                {adjustment.row.name} · {adjustment.row.branch} ·{" "}
+                {adjustment.row.variantName} ({adjustment.row.variantQuantity}{" "}
+                {adjustment.row.variantUnit})
+              </p>
+              <label>
+                Jumlah unit
+                <input
+                  type="number"
+                  min="1"
+                  max={
+                    adjustment.direction === "decrease"
+                      ? adjustment.row.totalStock
+                      : undefined
+                  }
+                  value={quantity}
+                  onChange={(event) =>
+                    setQuantity(Math.max(1, Number(event.target.value)))
+                  }
+                />
+              </label>
+              {adjustment.direction === "decrease" && (
+                <small>Stok saat ini: {adjustment.row.totalStock} unit</small>
+              )}
+              <div className="store-stock-modal-actions">
+                <button
+                  type="button"
+                  className="stock-cancel-button"
+                  onClick={() => setAdjustment(null)}
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  className="stock-confirm-button"
+                  disabled={
+                    adjustment.direction === "decrease" &&
+                    quantity > adjustment.row.totalStock
+                  }
+                  onClick={saveAdjustment}
+                >
+                  Simpan perubahan
+                </button>
+              </div>
+            </section>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

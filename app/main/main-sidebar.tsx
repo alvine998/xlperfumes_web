@@ -9,6 +9,7 @@ import {
   Package,
   ShieldCheck,
   Store,
+  Tags,
   UsersRound,
   type LucideIcon,
 } from "lucide-react";
@@ -18,6 +19,7 @@ import { isFeaturePermissions, type FeatureKey, type FeaturePermissions } from "
 const NAV_ITEMS: { href: string; label: string; feature: FeatureKey; Icon: LucideIcon }[] = [
   { href: "/main/dashboard", label: "Ringkasan", feature: "overview", Icon: LayoutDashboard },
   { href: "/main/store-stock", label: "Stok Toko", feature: "inventory", Icon: Package },
+  { href: "/main/variants", label: "Daftar Varian", feature: "inventory", Icon: Tags },
   { href: "/main/stores", label: "Daftar Toko", feature: "stores", Icon: Store },
   { href: "/main/users", label: "Pengguna", feature: "users", Icon: UsersRound },
   { href: "/main/roles", label: "Akses Peran", feature: "users", Icon: ShieldCheck },
