@@ -27,7 +27,7 @@ export function MonthlySalesChart({ data }: MonthlySalesChartProps) {
       type: "area",
       toolbar: { show: false },
       fontFamily: "Arial, sans-serif",
-      foreColor: "#898477",
+      foreColor: "#62695c",
       animations: { enabled: true, speed: 350 },
       zoom: { enabled: false },
     },
@@ -45,7 +45,7 @@ export function MonthlySalesChart({ data }: MonthlySalesChartProps) {
     markers: {
       size: 4,
       strokeWidth: 2,
-      strokeColors: "#fcfbf8",
+      strokeColors: "#fff",
       colors: ["#72785a"],
       hover: { size: 6 },
     },
@@ -68,7 +68,7 @@ export function MonthlySalesChart({ data }: MonthlySalesChartProps) {
       },
     },
     grid: {
-      borderColor: "#ece8df",
+      borderColor: "#d2d9cf",
       strokeDashArray: 3,
       padding: { left: 8, right: 12 },
     },

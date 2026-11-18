@@ -51,3 +51,50 @@
   .activity-filters { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .activity-search { width: 100%; }
 }
+
+/* Neumorphic activity history surfaces and filters. */
+.activity-content { --activity-card: #fff; }
+.activity-count,
+.activity-table-section {
+  border: 1px solid #f6f8f3;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 8px 8px 18px #d9ded8, -8px -8px 18px #ffffffc9;
+}
+.activity-count { padding: 12px 16px; }
+.activity-table-section { overflow: hidden; }
+.activity-filter-field input,
+.activity-filter-field select,
+.activity-search {
+  border: 0;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: inset 3px 3px 6px #d9ded8, inset -3px -3px 6px #ffffffc9;
+}
+.activity-clear-filters {
+  border: 1px solid #f6f8f3;
+  border-radius: 10px;
+  color: #35412f;
+  background: #fff;
+  box-shadow: 4px 4px 9px #d9ded8, -4px -4px 9px #ffffffc9;
+}
+.activity-clear-filters:hover {
+  background: #e2e7de;
+  box-shadow: inset 3px 3px 6px #d9ded8, inset -3px -3px 6px #ffffffc9;
+}
+.activity-table thead { background: #fff; }
+.activity-table td { border-top-color: #d7ddd3; }
+.activity-table-wrap,
+.activity-table-footer,
+.activity-filters { border-color: #d1d8cd; }
+.activity-action {
+  border: 0;
+  background: #fff;
+  box-shadow: inset 2px 2px 4px #d9ded8, inset -2px -2px 4px #ffffffc9;
+}
+.activity-content button:focus-visible,
+.activity-content input:focus-visible,
+.activity-content select:focus-visible {
+  outline: 3px solid #526645;
+  outline-offset: 3px;
+}

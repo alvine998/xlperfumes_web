@@ -704,3 +704,79 @@
 .users-empty button { min-height: 40px; border-radius: 8px; padding: 0 12px; color: #35432e; font-size: 13px; font-weight: 700; }
 .users-empty button:hover { background: #f1f5ed; }
 .users-content button:focus-visible { outline: 3px solid #70875c; outline-offset: 3px; }
+
+/* Neumorphic account management surfaces and controls. */
+.users-content { --users-card: #fff; }
+.users-summary-card,
+.users-table-section {
+  border: 1px solid #f6f8f3;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 8px 8px 18px #d9ded8, -8px -8px 18px #ffffffc9;
+}
+.users-summary-card { transition: transform .18s ease, box-shadow .18s ease; }
+.users-summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 10px 10px 20px #d5dbd2, -10px -10px 20px #ffffffd9;
+}
+.users-summary-icon,
+.user-avatar {
+  border: 0;
+  background: #fff;
+  box-shadow: inset 3px 3px 6px #d9ded8, inset -3px -3px 6px #ffffffc9;
+}
+.users-table-section { overflow: hidden; }
+.users-search,
+.users-select,
+.users-form-field input,
+.users-form-field select {
+  border: 0;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: inset 3px 3px 6px #d9ded8, inset -3px -3px 6px #ffffffc9;
+}
+.users-table thead { background: #fff; }
+.users-table td { border-top-color: #d7ddd3; }
+.users-table-wrap,
+.users-table-footer { border-color: #d1d8cd; }
+.users-primary-button,
+.users-secondary-button,
+.user-row-action {
+  border: 1px solid #f6f8f3;
+  border-radius: 11px;
+  box-shadow: 4px 4px 9px #d9ded8, -4px -4px 9px #ffffffc9;
+}
+.users-primary-button {
+  border-color: #384332;
+  background: linear-gradient(145deg, #526148, #34402f);
+  box-shadow: 4px 4px 9px #d2d8cf, -4px -4px 9px #ffffffb8;
+}
+.users-primary-button:hover {
+  border-color: #34402f;
+  background: linear-gradient(145deg, #46563d, #2d392a);
+}
+.users-secondary-button,
+.user-row-action { color: #35412f; background: #fff; }
+.users-secondary-button:hover,
+.user-row-action:hover {
+  color: #2d392a;
+  background: #e2e7de;
+  box-shadow: inset 3px 3px 6px #d9ded8, inset -3px -3px 6px #ffffffc9;
+  text-decoration: none;
+}
+.users-dialog {
+  border: 1px solid #f6f8f3;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 12px 12px 28px #cbd2c8, -8px -8px 20px #ffffffd9;
+}
+.users-dialog::backdrop { background: #22291f66; backdrop-filter: blur(4px); }
+.users-content button:focus-visible,
+.users-content input:focus-visible,
+.users-content select:focus-visible {
+  outline: 3px solid #526645;
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .users-summary-card { transition: none; }
+}
