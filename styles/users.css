@@ -415,23 +415,7 @@
 }
 .users-dialog {
   width: min(470px, calc(100vw - 32px));
-  max-width: none;
   max-height: calc(100vh - 32px);
-  margin: auto;
-  overflow: visible;
-  border: 0;
-  padding: 0;
-  color: var(--dashboard-ink);
-  background: transparent;
-}
-.users-dialog::backdrop {
-  background: #191a16a6;
-  backdrop-filter: blur(2px);
-}
-.users-dialog-panel {
-  border: 1px solid var(--dashboard-line);
-  background: var(--dashboard-paper);
-  box-shadow: 0 22px 70px #14150f38;
 }
 .users-dialog-header {
   display: flex;

@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Bell, X } from "lucide-react";
+import { Modal } from "@/components/ui/modal";
 
 const notifications = [
   {
@@ -34,12 +35,6 @@ export function NotificationModal() {
     setUnreadIds([]);
   }
 
-  function handleBackdropClick(event: React.MouseEvent<HTMLDialogElement>) {
-    if (event.target === event.currentTarget) {
-      dialogRef.current?.close();
-    }
-  }
-
   return (
     <>
       <button
@@ -56,13 +51,12 @@ export function NotificationModal() {
         )}
       </button>
 
-      <dialog
+      <Modal
         ref={dialogRef}
         className="notification-dialog"
         aria-labelledby="notification-title"
-        onClick={handleBackdropClick}
       >
-        <section className="notification-panel">
+        <section className="app-modal-panel notification-panel">
           <header className="notification-header">
             <div>
               <span className="dashboard-eyebrow">PUSAT INFORMASI</span>
@@ -113,7 +107,7 @@ export function NotificationModal() {
             Notifikasi contoh untuk dashboard
           </footer>
         </section>
-      </dialog>
+      </Modal>
     </>
   );
 }

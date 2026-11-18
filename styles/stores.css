@@ -68,9 +68,7 @@
 .stores-table-footer { display: flex; min-height: 43px; align-items: center; justify-content: space-between; gap: 14px; border-top: 1px solid var(--dashboard-line); padding: 0 20px; color: #999487; font-size: 10px; }
 .stores-table-footer strong { color: #69665b; font-weight: 600; }
 .stores-table-footer i { margin: 0 4px; color: #c1bcaf; font-style: normal; }
-.stores-dialog { width: min(540px, calc(100vw - 32px)); max-width: none; max-height: calc(100vh - 32px); margin: auto; overflow: visible; border: 0; padding: 0; color: var(--dashboard-ink); background: transparent; }
-.stores-dialog::backdrop { background: #191a16a6; backdrop-filter: blur(2px); }
-.stores-dialog-panel { border: 1px solid var(--dashboard-line); background: var(--dashboard-paper); box-shadow: 0 22px 70px #14150f38; }
+.stores-dialog { width: min(540px, calc(100vw - 32px)); max-height: calc(100vh - 32px); }
 .stores-dialog-header { display: flex; align-items: start; justify-content: space-between; gap: 15px; border-bottom: 1px solid var(--dashboard-line); padding: 21px 22px 17px; }
 .stores-dialog-header h2 { margin: 7px 0 5px; font-family: Georgia, "Times New Roman", serif; font-size: 25px; font-weight: 400; }
 .stores-dialog-header p { margin: 0; color: #898477; font-size: 12px; }

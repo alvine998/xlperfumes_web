@@ -1,0 +1,41 @@
+.activity-content { --activity-card: #fcfbf8; }
+.activity-heading { margin-bottom: 24px; }
+.activity-count { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--dashboard-line); padding: 10px 13px; color: #767261; background: #fcfbf8; font-size: 13px; }
+.activity-count svg { width: 17px; height: 17px; color: #8b896c; }
+.activity-table-section { border: 1px solid var(--dashboard-line); background: var(--activity-card); }
+.activity-table-header { display: flex; min-height: 110px; align-items: center; justify-content: space-between; gap: 20px; padding: 19px 20px; }
+.activity-table-header h2 { display: flex; align-items: center; gap: 9px; margin: 6px 0 4px; font-family: Georgia, "Times New Roman", serif; font-size: 23px; font-weight: 400; letter-spacing: -.035em; }
+.activity-table-header h2 > span { display: grid; min-width: 20px; height: 20px; place-items: center; border-radius: 10px; padding: 0 6px; color: #75705f; background: #efede6; font-family: Arial, sans-serif; font-size: 10px; letter-spacing: 0; }
+.activity-table-header p { margin: 0; color: #918c80; font-size: 13px; }
+.activity-search { display: flex; width: min(310px, 100%); height: 40px; align-items: center; gap: 9px; border: 1px solid var(--dashboard-line); padding: 0 11px; color: #898477; background: #f8f7f3; }
+.activity-search svg { width: 17px; height: 17px; flex: 0 0 auto; }
+.activity-search input { width: 100%; min-width: 0; border: 0; outline: 0; color: var(--dashboard-ink); background: transparent; font: inherit; font-size: 13px; }
+.activity-search input::placeholder { color: #aaa597; }
+.activity-error { margin: 0; border-top: 1px solid #e8c9c3; padding: 13px 17px; color: #85463d; background: #fbf2ef; font-size: 13px; }
+.activity-table-wrap { overflow-x: auto; border-top: 1px solid var(--dashboard-line); }
+.activity-table { width: 100%; min-width: 1050px; border-collapse: collapse; text-align: left; }
+.activity-table thead { background: #f7f6f1; }
+.activity-table th { height: 43px; padding: 0 14px; color: #898477; font-size: 11px; font-weight: 600; letter-spacing: .09em; white-space: nowrap; }
+.activity-table th:first-child, .activity-table td:first-child { padding-left: 20px; }
+.activity-table td { height: 68px; border-top: 1px solid #efede7; padding: 10px 14px; color: #69665b; font-size: 13px; }
+.activity-time, .activity-ip { white-space: nowrap; }
+.activity-actor { color: #343329; font-size: 14px; font-weight: 600; }
+.activity-action { display: inline-flex; border: 1px solid #e7e2d8; border-radius: 20px; padding: 5px 10px; color: #66654f; background: #f5f3ed; font-size: 12px; }
+.activity-target { color: #59574c; font-weight: 600; }
+.activity-details { min-width: 230px; max-width: 390px; color: #777367 !important; line-height: 1.55; overflow-wrap: anywhere; }
+.activity-empty { height: 220px !important; color: #898477 !important; text-align: center; font-size: 13px !important; }
+.activity-empty > * { display: block; margin: 7px auto; }
+.activity-empty-icon svg { width: 23px; height: 23px; color: #aaa597; }
+.activity-empty strong { color: #5f5c51; font-family: Georgia, serif; font-size: 19px; font-weight: 400; }
+.activity-table-footer { display: flex; min-height: 46px; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid var(--dashboard-line); padding: 0 20px; color: #898477; font-size: 12px; }
+.activity-table-footer strong { color: #69665b; font-weight: 600; }
+.activity-content button:focus-visible, .activity-content input:focus-visible { outline: 2px solid #8c896e; outline-offset: 3px; }
+.activity-content .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; clip-path: inset(50%); }
+@media (max-width: 760px) {
+  .activity-content { padding-top: 28px; }
+  .activity-heading { align-items: start; flex-direction: column; gap: 16px; }
+  .activity-table-header { align-items: stretch; flex-direction: column; gap: 14px; padding: 16px 13px; }
+  .activity-search { width: 100%; }
+  .activity-table th:first-child, .activity-table td:first-child { padding-left: 13px; }
+  .activity-table-footer { align-items: start; flex-direction: column; justify-content: center; padding: 9px 13px; }
+}

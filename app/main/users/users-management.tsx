@@ -19,6 +19,9 @@ import {
   X,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { DashboardFooter } from "@/components/layout/dashboard-footer";
+import { Modal } from "@/components/ui/modal";
+import { DataTable } from "@/components/ui/data-table";
 import { getApi, getApiError, api } from "@/lib/api";
 import { isUser, USER_ROLES, type User, type UserRole } from "@/lib/users";
 
@@ -301,109 +304,109 @@ export function UsersManagement() {
             {error}
           </p>
         )}
-        <div className="users-table-wrap">
-          <table className="users-table">
-            <thead>
-              <tr>
-                <th scope="col">USERNAME</th>
-                <th scope="col">PERAN</th>
-                <th scope="col">STATUS</th>
-                <th scope="col">DIBUAT</th>
-                <th scope="col">
-                  <span className="sr-only">Aksi</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredUsers.map((user) => (
-                <tr key={user.id}>
-                  <td>
-                    <div className="user-identity">
-                      <span className="user-avatar" aria-hidden="true">
-                        {user.username.charAt(0).toLocaleUpperCase("id-ID")}
-                      </span>
-                      <span>
-                        <strong>@{user.username}</strong>
-                        <small>ID {user.id}</small>
-                      </span>
-                    </div>
-                  </td>
-                  <td>
-                    <span
-                      className={`user-role user-role-${roleClass(user.role)}`}
-                    >
-                      {roleLabel(user.role)}
-                    </span>
-                  </td>
-                  <td>
-                    <span
-                      className={`user-status ${user.isActive ? "is-active" : "is-inactive"}`}
-                    >
-                      <span aria-hidden="true" />
-                      {user.isActive ? "Aktif" : "Nonaktif"}
-                    </span>
-                  </td>
-                  <td className="user-last-active">
-                    {formatCreatedAt(user.createdAt)}
-                  </td>
-                  <td>
-                    <div className="user-row-actions">
-                      <button
-                        className="user-row-action"
-                        type="button"
-                        onClick={() => openEdit(user)}
-                      >
-                        <UserRoundPen size={14} aria-hidden="true" />
-                        Edit
-                      </button>
-                      <button
-                        className="user-row-action"
-                        type="button"
-                        onClick={() => void handleToggleStatus(user)}
-                      >
-                        {user.isActive ? "Nonaktifkan" : "Aktifkan"}
-                      </button>
-                      <button
-                        className="user-row-action user-delete-action"
-                        type="button"
-                        onClick={() => void handleDeleteUser(user)}
-                      >
-                        <Trash2 size={14} aria-hidden="true" />
-                        Hapus
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {!isLoading && !error && filteredUsers.length === 0 && (
-                <tr>
-                  <td className="users-empty" colSpan={5}>
-                    <span className="users-empty-icon">
-                      <Search aria-hidden="true" />
-                    </span>
-                    <strong>
-                      {users.length
-                        ? "Tidak ada pengguna ditemukan"
-                        : "Belum ada pengguna"}
-                    </strong>
-                    <span>
-                      {users.length
-                        ? "Coba ubah kata kunci atau filter."
-                        : "Tambahkan akun baru untuk memulai."}
-                    </span>
-                  </td>
-                </tr>
-              )}
-              {isLoading && (
-                <tr>
-                  <td className="users-empty" colSpan={5}>
-                    Memuat pengguna…
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <DataTable<User>
+          ariaLabel="Daftar pengguna"
+          className="users-table"
+          wrapperClassName="users-table-wrap"
+          stateCellClassName="users-empty"
+          columns={[
+            {
+              id: "username",
+              header: "USERNAME",
+              renderCell: (user) => (
+                <div className="user-identity">
+                  <span className="user-avatar" aria-hidden="true">
+                    {user.username.charAt(0).toLocaleUpperCase("id-ID")}
+                  </span>
+                  <span>
+                    <strong>@{user.username}</strong>
+                    <small>ID {user.id}</small>
+                  </span>
+                </div>
+              ),
+            },
+            {
+              id: "role",
+              header: "PERAN",
+              renderCell: (user) => (
+                <span className={`user-role user-role-${roleClass(user.role)}`}>
+                  {roleLabel(user.role)}
+                </span>
+              ),
+            },
+            {
+              id: "status",
+              header: "STATUS",
+              renderCell: (user) => (
+                <span
+                  className={`user-status ${user.isActive ? "is-active" : "is-inactive"}`}
+                >
+                  <span aria-hidden="true" />
+                  {user.isActive ? "Aktif" : "Nonaktif"}
+                </span>
+              ),
+            },
+            {
+              id: "created-at",
+              header: "DIBUAT",
+              className: "user-last-active",
+              renderCell: (user) => formatCreatedAt(user.createdAt),
+            },
+            {
+              id: "actions",
+              header: <span className="sr-only">Aksi</span>,
+              renderCell: (user) => (
+                <div className="user-row-actions">
+                  <button
+                    className="user-row-action"
+                    type="button"
+                    onClick={() => openEdit(user)}
+                  >
+                    <UserRoundPen size={14} aria-hidden="true" />
+                    Edit
+                  </button>
+                  <button
+                    className="user-row-action"
+                    type="button"
+                    onClick={() => void handleToggleStatus(user)}
+                  >
+                    {user.isActive ? "Nonaktifkan" : "Aktifkan"}
+                  </button>
+                  <button
+                    className="user-row-action user-delete-action"
+                    type="button"
+                    onClick={() => void handleDeleteUser(user)}
+                  >
+                    <Trash2 size={14} aria-hidden="true" />
+                    Hapus
+                  </button>
+                </div>
+              ),
+            },
+          ]}
+          rows={filteredUsers}
+          getRowKey={(user) => user.id}
+          hasError={Boolean(error)}
+          isLoading={isLoading}
+          loadingContent="Memuat pengguna…"
+          emptyContent={
+            <>
+              <span className="users-empty-icon">
+                <Search aria-hidden="true" />
+              </span>
+              <strong>
+                {users.length
+                  ? "Tidak ada pengguna ditemukan"
+                  : "Belum ada pengguna"}
+              </strong>
+              <span>
+                {users.length
+                  ? "Coba ubah kata kunci atau filter."
+                  : "Tambahkan akun baru untuk memulai."}
+              </span>
+            </>
+          }
+        />
         <footer className="users-table-footer">
           <span>
             Menampilkan <strong>{filteredUsers.length}</strong> dari{" "}
@@ -415,24 +418,16 @@ export function UsersManagement() {
         </footer>
       </section>
 
-      <footer className="dashboard-footer">
-        <span>
-          XL PERFUMES <i>·</i> MANAJEMEN PENGGUNA
-        </span>
-        <span>© 2026 XL PERFUMES</span>
-      </footer>
+      <DashboardFooter section="MANAJEMEN PENGGUNA" />
 
-      <dialog
+      <Modal
         className="users-dialog"
         ref={dialogRef}
         aria-labelledby="add-user-title"
         onClose={() => setEditingUser(null)}
-        onClick={(event) => {
-          if (event.target === event.currentTarget) dialogRef.current?.close();
-        }}
       >
         <form
-          className="users-dialog-panel"
+          className="app-modal-panel users-dialog-panel"
           key={editingUser?.id ?? "new-user"}
           onSubmit={handleSaveUser}
         >
@@ -527,7 +522,7 @@ export function UsersManagement() {
             kembali.
           </p>
         </form>
-      </dialog>
+      </Modal>
     </div>
   );
 }

@@ -18,6 +18,9 @@ import {
   X,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { DashboardFooter } from "@/components/layout/dashboard-footer";
+import { Modal } from "@/components/ui/modal";
+import { DataTable } from "@/components/ui/data-table";
 import { api, getApi, getApiError } from "@/lib/api";
 import { isStore, type Store } from "@/lib/stores";
 
@@ -416,112 +419,123 @@ export function StoresManagement() {
             {error}
           </p>
         )}
-        <div className="stores-table-wrap">
-          <table className="stores-table">
-            <thead>
-              <tr>
-                <th scope="col">QR TOKO</th>
-                <th scope="col">NAMA TOKO</th>
-                <th scope="col">CABANG</th>
-                <th scope="col">ALAMAT</th>
-                <th scope="col">PIN LOKASI</th>
-                <th scope="col">DIBUAT</th>
-                <th scope="col">
-                  <span className="sr-only">Aksi</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredStores.map((store) => (
-                <tr key={store.id}>
-                  <td>
-                    <div className="store-qr">
-                      {qrCodes[store.id] ? (
-                        <Image
-                          src={qrCodes[store.id]}
-                          width={54}
-                          height={54}
-                          unoptimized
-                          alt={`QR code ${store.name}`}
-                        />
-                      ) : (
-                        <span aria-label="Membuat QR code">•••</span>
-                      )}
-                    </div>
-                  </td>
-                  <td>
-                    <div className="store-name-cell">
-                      <strong>{store.name}</strong>
-                      <small>ID TOKO {store.id}</small>
-                    </div>
-                  </td>
-                  <td>
-                    <span className="store-branch">{store.branch}</span>
-                  </td>
-                  <td className="store-address">{store.address}</td>
-                  <td>
-                    <a
-                      className="store-location-link"
-                      href={`https://www.google.com/maps?q=${store.latitude},${store.longitude}`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <MapPin size={13} aria-hidden="true" />
-                      {store.latitude.toFixed(5)}, {store.longitude.toFixed(5)}
-                    </a>
-                  </td>
-                  <td className="store-date">{dateLabel(store.createdAt)}</td>
-                  <td>
-                    <div className="store-row-actions">
-                      <button
-                        className="store-row-action"
-                        type="button"
-                        onClick={() => openEdit(store)}
-                      >
-                        <Pencil size={14} aria-hidden="true" />
-                        Edit
-                      </button>
-                      <button
-                        className="store-row-action store-delete-action"
-                        type="button"
-                        onClick={() => void handleDelete(store)}
-                      >
-                        <Trash2 size={14} aria-hidden="true" />
-                        Hapus
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {!isLoading && !error && filteredStores.length === 0 && (
-                <tr>
-                  <td className="stores-empty" colSpan={7}>
-                    <span className="stores-empty-icon">
-                      <Search aria-hidden="true" />
-                    </span>
-                    <strong>
-                      {stores.length
-                        ? "Tidak ada toko ditemukan"
-                        : "Belum ada toko terdaftar"}
-                    </strong>
-                    <span>
-                      {stores.length
-                        ? "Ubah kata kunci atau filter cabang."
-                        : "Tambahkan toko untuk mulai mengelola lokasi."}
-                    </span>
-                  </td>
-                </tr>
-              )}
-              {isLoading && (
-                <tr>
-                  <td className="stores-empty" colSpan={7}>
-                    Memuat daftar toko…
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <DataTable<Store>
+          ariaLabel="Daftar toko"
+          className="stores-table"
+          wrapperClassName="stores-table-wrap"
+          stateCellClassName="stores-empty"
+          columns={[
+            {
+              id: "qr",
+              header: "QR TOKO",
+              renderCell: (store) => (
+                <div className="store-qr">
+                  {qrCodes[store.id] ? (
+                    <Image
+                      src={qrCodes[store.id]}
+                      width={54}
+                      height={54}
+                      unoptimized
+                      alt={`QR code ${store.name}`}
+                    />
+                  ) : (
+                    <span aria-label="Membuat QR code">•••</span>
+                  )}
+                </div>
+              ),
+            },
+            {
+              id: "name",
+              header: "NAMA TOKO",
+              renderCell: (store) => (
+                <div className="store-name-cell">
+                  <strong>{store.name}</strong>
+                  <small>ID TOKO {store.id}</small>
+                </div>
+              ),
+            },
+            {
+              id: "branch",
+              header: "CABANG",
+              renderCell: (store) => (
+                <span className="store-branch">{store.branch}</span>
+              ),
+            },
+            {
+              id: "address",
+              header: "ALAMAT",
+              className: "store-address",
+              renderCell: (store) => store.address,
+            },
+            {
+              id: "location",
+              header: "PIN LOKASI",
+              renderCell: (store) => (
+                <a
+                  className="store-location-link"
+                  href={`https://www.google.com/maps?q=${store.latitude},${store.longitude}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <MapPin size={13} aria-hidden="true" />
+                  {store.latitude.toFixed(5)}, {store.longitude.toFixed(5)}
+                </a>
+              ),
+            },
+            {
+              id: "created-at",
+              header: "DIBUAT",
+              className: "store-date",
+              renderCell: (store) => dateLabel(store.createdAt),
+            },
+            {
+              id: "actions",
+              header: <span className="sr-only">Aksi</span>,
+              renderCell: (store) => (
+                <div className="store-row-actions">
+                  <button
+                    className="store-row-action"
+                    type="button"
+                    onClick={() => openEdit(store)}
+                  >
+                    <Pencil size={14} aria-hidden="true" />
+                    Edit
+                  </button>
+                  <button
+                    className="store-row-action store-delete-action"
+                    type="button"
+                    onClick={() => void handleDelete(store)}
+                  >
+                    <Trash2 size={14} aria-hidden="true" />
+                    Hapus
+                  </button>
+                </div>
+              ),
+            },
+          ]}
+          rows={filteredStores}
+          getRowKey={(store) => store.id}
+          hasError={Boolean(error)}
+          isLoading={isLoading}
+          loadingContent="Memuat daftar toko…"
+          emptyContent={
+            <>
+              <span className="stores-empty-icon">
+                <Search aria-hidden="true" />
+              </span>
+              <strong>
+                {stores.length
+                  ? "Tidak ada toko ditemukan"
+                  : "Belum ada toko terdaftar"}
+              </strong>
+              <span>
+                {stores.length
+                  ? "Ubah kata kunci atau filter cabang."
+                  : "Tambahkan toko untuk mulai mengelola lokasi."}
+              </span>
+            </>
+          }
+        />
         <footer className="stores-table-footer">
           <span>
             Menampilkan <strong>{filteredStores.length}</strong> dari{" "}
@@ -532,24 +546,16 @@ export function StoresManagement() {
           </span>
         </footer>
       </section>
-      <footer className="dashboard-footer">
-        <span>
-          XL PERFUMES <i>·</i> DAFTAR TOKO
-        </span>
-        <span>© 2026 XL PERFUMES</span>
-      </footer>
+      <DashboardFooter section="DAFTAR TOKO" />
 
-      <dialog
+      <Modal
         className="stores-dialog"
         ref={dialogRef}
         aria-labelledby="store-form-title"
         onClose={() => setEditingStore(null)}
-        onClick={(event) => {
-          if (event.target === event.currentTarget) dialogRef.current?.close();
-        }}
       >
         <form
-          className="stores-dialog-panel"
+          className="app-modal-panel stores-dialog-panel"
           key={editingStore?.id ?? "new-store"}
           onSubmit={handleSave}
         >
@@ -670,7 +676,7 @@ export function StoresManagement() {
             otomatis berdasarkan Nama Toko.
           </p>
         </form>
-      </dialog>
+      </Modal>
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { ArrowUpRight, CalendarDays, Filter } from "lucide-react";
+import { DashboardFooter } from "@/components/layout/dashboard-footer";
 import { MonthlySalesChart } from "./monthly-sales-chart";
 import { VariantSalesChart } from "./variant-sales-chart";
 
@@ -364,12 +365,7 @@ export function AnalyticsDashboard() {
         </div>
       </section>
 
-      <footer className="dashboard-footer">
-        <span>
-          XL PERFUMES <i>·</i> RINGKASAN OPERASIONAL
-        </span>
-        <span>© 2026 XL PERFUMES</span>
-      </footer>
+      <DashboardFooter section="RINGKASAN OPERASIONAL" />
     </div>
   );
 }

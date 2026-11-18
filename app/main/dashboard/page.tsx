@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ChartNoAxesColumnIncreasing,
+  ClipboardList,
   LayoutDashboard,
   MapPin,
   Package,
@@ -74,6 +75,12 @@ export default function DashboardPage() {
               <UsersRound aria-hidden="true" />
             </span>
             Pengguna
+          </Link>
+          <Link className="dashboard-nav-link" href="/main/activity-logs">
+            <span className="nav-icon">
+              <ClipboardList aria-hidden="true" />
+            </span>
+            Log Aktivitas
           </Link>
         </nav>
 

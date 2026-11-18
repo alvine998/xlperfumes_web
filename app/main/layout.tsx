@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import axios from "axios";
 import { api } from "@/lib/api";
+import "../../styles/modal.css";
 
 export default function MainLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
