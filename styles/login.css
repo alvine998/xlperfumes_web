@@ -477,15 +477,14 @@
     inset -3px -3px 7px #ffffff;
   color: #111;
   -webkit-text-fill-color: #111;
-  caret-color: #6654d9;
+  caret-color: #68764d;
   font-size: 14px;
 }
 .login-content .field-group input:focus {
   border: 0;
   box-shadow:
     inset 3px 3px 7px #dddbe5,
-    inset -3px -3px 7px #ffffff,
-    0 0 0 3px #765de333;
+    inset -3px -3px 7px #ffffff;
 }
 .login-content .submit-button {
   border: 1px solid #5744c3;
@@ -535,7 +534,7 @@
   color: #35412f;
 }
 .login-content :focus-visible {
-  outline-color: #6654d9;
+  outline: none;
 }
 .login-content .submit-button {
   height: 54px;

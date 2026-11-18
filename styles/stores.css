@@ -75,7 +75,8 @@
 .stores-dialog-fields { display: grid; gap: 13px; max-height: min(66vh, 570px); overflow-y: auto; padding: 19px 22px; }
 .stores-form-field { display: grid; gap: 6px; }
 .stores-form-field > span { color: #6f6b5f; font-size: 12px; font-weight: 600; }
-.stores-form-field input, .stores-form-field textarea { width: 100%; min-height: 39px; border: 1px solid var(--dashboard-line); border-radius: 2px; padding: 9px 10px; color: var(--dashboard-ink); background: #fcfbf8; font: inherit; font-size: 13px; }
+.stores-form-field input, .stores-form-field textarea, .stores-form-field select { width: 100%; min-height: 39px; border: 1px solid var(--dashboard-line); border-radius: 2px; padding: 9px 10px; color: var(--dashboard-ink); background: #fcfbf8; font: inherit; font-size: 13px; }
+.stores-form-field > small { color: #898477; font-size: 11px; line-height: 1.5; }
 .stores-form-field textarea { resize: vertical; line-height: 1.5; }
 .stores-form-field input::placeholder, .stores-form-field textarea::placeholder { color: #aaa597; }
 .stores-location-field { display: grid; gap: 10px; border: 1px solid var(--dashboard-line); padding: 13px; }
@@ -162,7 +163,7 @@
 .stores-dialog-fields { gap: 16px; }
 .stores-form-field { gap: 8px; }
 .stores-form-field > span, .stores-location-field legend { color: #34382f; font-size: 14px; font-weight: 700; }
-.stores-form-field input, .stores-form-field textarea { min-height: 46px; border-color: #bfc3b7; border-radius: 7px; color: #20221b; background: #fff; font-size: 15px; }
+.stores-form-field input, .stores-form-field textarea, .stores-form-field select { min-height: 46px; border-color: #bfc3b7; border-radius: 7px; color: #20221b; background: #fff; font-size: 15px; }
 .stores-form-field input::placeholder, .stores-form-field textarea::placeholder { color: #62655c; }
 .stores-location-field { border-color: #cbd0c3; border-radius: 8px; }
 .stores-location-button { min-height: 44px; font-size: 14px; }
@@ -240,6 +241,7 @@
 .stores-select,
 .stores-form-field input,
 .stores-form-field textarea,
+.stores-form-field select,
 .stores-location-field {
   border: 0;
   border-radius: 10px;

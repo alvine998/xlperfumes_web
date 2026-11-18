@@ -56,3 +56,35 @@ a:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 3px;
 }
+
+input:focus,
+input:focus-visible,
+select:focus,
+select:focus-visible,
+textarea:focus,
+textarea:focus-visible {
+  outline: none !important;
+  outline-offset: 0 !important;
+  box-shadow: none !important;
+  border-color: var(--line) !important;
+}
+
+input,
+select,
+textarea {
+  accent-color: #68764d;
+  -webkit-tap-highlight-color: transparent;
+}
+
+select option {
+  color: var(--ink);
+  background: #fff;
+}
+
+select option:checked,
+select option:hover {
+  border: 0;
+  color: #20221b;
+  background: #68764d;
+  color: #fff;
+}

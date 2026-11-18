@@ -22,6 +22,7 @@ import { DashboardFooter } from "@/components/layout/dashboard-footer";
 import { Modal } from "@/components/ui/modal";
 import { DataTable } from "@/components/ui/data-table";
 import { api, getApi, getApiError } from "@/lib/api";
+import { isBranch, type Branch } from "@/lib/branches";
 import { isStore, type Store } from "@/lib/stores";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -53,6 +54,7 @@ function dateLabel(value: string) {
 
 export function StoresManagement() {
   const [stores, setStores] = useState<Store[]>([]);
+  const [availableBranches, setAvailableBranches] = useState<Branch[]>([]);
   const [search, setSearch] = useState("");
   const [branchFilter, setBranchFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("newest");
@@ -66,18 +68,21 @@ export function StoresManagement() {
 
   useEffect(() => {
     let isCurrent = true;
-    getApi("/stores")
-      .then(({ data }) => {
+    Promise.all([getApi("/stores"), getApi("/branches")])
+      .then(([storesResponse, branchesResponse]) => {
         if (!isCurrent) return;
-        const payload = data;
-        if (
-          !isRecord(payload) ||
-          !Array.isArray(payload.stores) ||
-          !payload.stores.every(isStore)
-        ) {
+        const storePayload = storesResponse.data;
+        const branchPayload = branchesResponse.data;
+        if (!isRecord(storePayload) || !Array.isArray(storePayload.stores) ||
+          !storePayload.stores.every(isStore)) {
           throw new Error("API mengembalikan daftar toko yang tidak valid.");
         }
-        setStores(payload.stores);
+        if (!isRecord(branchPayload) || !Array.isArray(branchPayload.branches) ||
+          !branchPayload.branches.every(isBranch)) {
+          throw new Error("API mengembalikan daftar cabang yang tidak valid.");
+        }
+        setStores(storePayload.stores);
+        setAvailableBranches(branchPayload.branches);
       })
       .catch((cause: unknown) => {
         if (isCurrent) setError(getApiError(cause));
@@ -181,9 +186,18 @@ export function StoresManagement() {
     event.preventDefault();
     const form = event.currentTarget;
     const data = new FormData(form);
+    const selectedBranchId = String(data.get("branchId") ?? "");
+    const selectedBranch = availableBranches.find(
+      (branch) => String(branch.id) === selectedBranchId,
+    );
+    if (!selectedBranch && !editingStore) {
+      toast.error("Pilih cabang untuk toko ini.");
+      return;
+    }
     const body = {
       name: String(data.get("name") ?? "").trim(),
-      branch: String(data.get("branch") ?? "").trim(),
+      branch: selectedBranch?.name ?? editingStore?.branch ?? "",
+      branchId: selectedBranch?.id ?? null,
       address: String(data.get("address") ?? "").trim(),
       latitude: Number(data.get("latitude")),
       longitude: Number(data.get("longitude")),
@@ -591,13 +605,28 @@ export function StoresManagement() {
             </label>
             <label className="stores-form-field">
               <span>Cabang</span>
-              <input
-                name="branch"
-                maxLength={100}
-                placeholder="Contoh: Jakarta Selatan"
-                defaultValue={editingStore?.branch}
-                required
-              />
+              <select
+                name="branchId"
+                defaultValue={editingStore?.branchId ?? ""}
+                required={!editingStore || Boolean(editingStore.branchId)}
+              >
+                <option value="">
+                  {editingStore
+                    ? `Cabang saat ini: ${editingStore.branch}`
+                    : "Pilih cabang"}
+                </option>
+                {availableBranches.map((branch) => (
+                  <option key={branch.id} value={branch.id}>
+                    {branch.name} — {branch.city}
+                  </option>
+                ))}
+              </select>
+              {editingStore && !editingStore.branchId && (
+                <small>
+                  Toko ini belum terhubung ke data cabang. Biarkan pilihan kosong
+                  untuk mempertahankan data lama.
+                </small>
+              )}
             </label>
             <label className="stores-form-field">
               <span>Alamat</span>
