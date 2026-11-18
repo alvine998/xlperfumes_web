@@ -982,6 +982,10 @@
 .notification-close:hover { background: #f0f2e9; }
 .dashboard-shell button, .dashboard-shell a, .dashboard-shell input, .dashboard-shell select { -webkit-tap-highlight-color: transparent; }
 .dashboard-shell button:focus-visible, .dashboard-shell a:focus-visible, .dashboard-shell input:focus-visible, .dashboard-shell select:focus-visible { outline: 3px solid #68764d; outline-offset: 3px; }
+.notification-trigger, .notification-close { transition: background .16s, border-color .16s, box-shadow .16s, transform .16s; }
+.notification-trigger:active, .notification-close:active { transform: scale(.96); }
+.notification-actions button { border-radius: 7px; padding: 8px 10px; transition: color .16s, background .16s; }
+.notification-actions button:hover { color: #29371f; background: #f1f5ed; }
 @media (max-width: 760px) {
   .dashboard-nav-link { min-height: 58px; font-size: 11px; }
   .filter-field input, .filter-field select { height: 44px; min-width: 0; padding: 0 9px; font-size: 14px; }

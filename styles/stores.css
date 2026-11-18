@@ -170,6 +170,11 @@
 .stores-dialog-actions button { min-width: 112px; }
 .stores-dialog-note { color: #55584e; font-size: 12px; }
 .stores-content button:focus-visible, .stores-content input:focus-visible, .stores-content textarea:focus-visible, .stores-content select:focus-visible { outline: 3px solid #68764d; outline-offset: 3px; }
+.stores-primary-button, .stores-location-button { background: linear-gradient(135deg, #596b46, #35432e); box-shadow: 0 3px 8px #27331f2b; }
+.stores-primary-button:hover, .stores-location-button:hover { background: linear-gradient(135deg, #4e603c, #29371f); box-shadow: 0 5px 12px #27331f38; }
+.stores-primary-button:active, .stores-secondary-button:active, .stores-export-button:active, .stores-location-button:active, .store-row-action:active { transform: translateY(1px); }
+.stores-dialog-actions .stores-primary-button { min-height: 46px; }
+.stores-dialog-actions .stores-secondary-button { min-height: 46px; }
 @media (max-width: 760px) {
   .stores-heading-actions { gap: 10px; }
   .stores-summary-card { min-height: 100px; }

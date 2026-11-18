@@ -58,6 +58,11 @@ function detailsLabel(details: unknown) {
 export function ActivityLogs() {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [search, setSearch] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [userFilter, setUserFilter] = useState("all");
+  const [branchFilter, setBranchFilter] = useState("all");
+  const [actionFilter, setActionFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -80,14 +85,44 @@ export function ActivityLogs() {
     return () => { isCurrent = false; };
   }, []);
 
+  const users = useMemo(
+    () => [...new Set(logs.map((log) => log.username).filter((username): username is string => Boolean(username)))].sort((a, b) => a.localeCompare(b, "id")),
+    [logs],
+  );
+  const branches = useMemo(
+    () => [...new Set(logs.map((log) => getLogBranch(log)))].sort((a, b) => a.localeCompare(b, "id")),
+    [logs],
+  );
+  const actions = useMemo(
+    () => [...new Set(logs.map((log) => log.action))].sort((a, b) => a.localeCompare(b, "id")),
+    [logs],
+  );
+
   const filteredLogs = useMemo(() => {
     const query = search.trim().toLocaleLowerCase("id-ID");
-    if (!query) return logs;
-    return logs.filter((log) => [
-      log.username ?? "", log.action, log.entityType, log.entityId ?? "",
-      detailsLabel(log.details), log.ipAddress ?? "",
-    ].join(" ").toLocaleLowerCase("id-ID").includes(query));
-  }, [logs, search]);
+    return logs.filter((log) => {
+      const logDate = dateKey(log.createdAt);
+      const matchesSearch = !query || [
+        log.username ?? "", log.action, log.entityType, log.entityId ?? "",
+        detailsLabel(log.details), log.ipAddress ?? "",
+      ].join(" ").toLocaleLowerCase("id-ID").includes(query);
+      return matchesSearch &&
+        (!startDate || (Boolean(logDate) && logDate >= startDate)) &&
+        (!endDate || (Boolean(logDate) && logDate <= endDate)) &&
+        (userFilter === "all" || log.username === userFilter) &&
+        (branchFilter === "all" || getLogBranch(log) === branchFilter) &&
+        (actionFilter === "all" || log.action === actionFilter);
+    });
+  }, [logs, search, startDate, endDate, userFilter, branchFilter, actionFilter]);
+
+  function clearFilters() {
+    setSearch("");
+    setStartDate("");
+    setEndDate("");
+    setUserFilter("all");
+    setBranchFilter("all");
+    setActionFilter("all");
+  }
 
   return (
     <div className="dashboard-content activity-content">
@@ -107,12 +142,45 @@ export function ActivityLogs() {
             <h2 id="activity-table-title">Semua aktivitas <span>{filteredLogs.length}</span></h2>
             <p>Menampilkan hingga 500 catatan terbaru.</p>
           </div>
+        </header>
+
+        <div className="activity-filters" aria-label="Filter aktivitas">
+          <label className="activity-filter-field">
+            <span>Tanggal mulai</span>
+            <input type="date" value={startDate} max={endDate || undefined} onChange={(event) => setStartDate(event.target.value)} />
+          </label>
+          <label className="activity-filter-field">
+            <span>Tanggal akhir</span>
+            <input type="date" value={endDate} min={startDate || undefined} onChange={(event) => setEndDate(event.target.value)} />
+          </label>
+          <label className="activity-filter-field">
+            <span>Pengguna</span>
+            <select value={userFilter} onChange={(event) => setUserFilter(event.target.value)}>
+              <option value="all">Semua pengguna</option>
+              {users.map((username) => <option key={username} value={username}>{username}</option>)}
+            </select>
+          </label>
+          <label className="activity-filter-field">
+            <span>Cabang</span>
+            <select value={branchFilter} onChange={(event) => setBranchFilter(event.target.value)}>
+              <option value="all">Semua cabang</option>
+              {branches.map((branch) => <option key={branch} value={branch}>{branch}</option>)}
+            </select>
+          </label>
+          <label className="activity-filter-field">
+            <span>Aksi</span>
+            <select value={actionFilter} onChange={(event) => setActionFilter(event.target.value)}>
+              <option value="all">Semua aksi</option>
+              {actions.map((action) => <option key={action} value={action}>{label(action)}</option>)}
+            </select>
+          </label>
           <label className="activity-search">
             <Search aria-hidden="true" />
             <span className="sr-only">Cari aktivitas</span>
-            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Cari pengguna atau aktivitas" />
+            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Cari aktivitas" />
           </label>
-        </header>
+          <button className="activity-clear-filters" type="button" onClick={clearFilters}>Atur ulang</button>
+        </div>
 
         {error && <p className="activity-error" role="alert">Gagal memuat log aktivitas: {error}</p>}
         <DataTable<ActivityLog>
@@ -143,4 +211,24 @@ export function ActivityLogs() {
       <DashboardFooter />
     </div>
   );
+}
+
+function getLogBranch(log: ActivityLog) {
+  if (isRecord(log.details) && typeof log.details.branch === "string" && log.details.branch.trim()) {
+    return log.details.branch;
+  }
+  return "Tanpa cabang";
+}
+
+function dateKey(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Jakarta",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((item) => item.type === type)?.value ?? "";
+  return `${part("year")}-${part("month")}-${part("day")}`;
 }

@@ -644,3 +644,63 @@
 .users-dialog-note {
   font-size: 10px;
 }
+
+/* Make key account actions easier to spot and satisfying to tap. */
+.users-primary-button,
+.users-secondary-button {
+  min-height: 46px;
+  border-radius: 9px;
+  padding: 0 18px;
+  font-size: 14px;
+  font-weight: 700;
+  transition: background .16s, border-color .16s, box-shadow .16s, transform .16s;
+}
+.users-primary-button {
+  border-color: #35432e;
+  background: linear-gradient(135deg, #596b46, #35432e);
+  box-shadow: 0 3px 8px #27331f2b;
+}
+.users-primary-button:hover {
+  border-color: #27351f;
+  background: linear-gradient(135deg, #4e603c, #29371f);
+  box-shadow: 0 5px 12px #27331f38;
+  transform: translateY(-1px);
+}
+.users-primary-button:active,
+.users-secondary-button:active,
+.user-row-action:active { transform: translateY(1px); }
+.users-secondary-button {
+  border-color: #aeb8a4;
+  color: #35432e;
+  background: #fff;
+  box-shadow: 0 1px 3px #20221b12;
+}
+.users-secondary-button:hover {
+  border-color: #778767;
+  color: #29371f;
+  background: #f1f5ed;
+  box-shadow: 0 3px 8px #27331f18;
+}
+.user-row-actions { gap: 7px; }
+.user-row-action {
+  min-height: 40px;
+  border: 1px solid #cbd2c4;
+  border-radius: 8px;
+  padding: 0 11px;
+  color: #35432e;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background .16s, border-color .16s, transform .16s;
+}
+.user-row-action:hover {
+  border-color: #829171;
+  color: #29371f;
+  background: #f1f5ed;
+  text-decoration: none;
+}
+.user-row-action.user-delete-action { border-color: #e2c6c0; color: #813f34; }
+.user-row-action.user-delete-action:hover { border-color: #c58a7d; color: #6b3028; background: #fff3f0; }
+.users-empty button { min-height: 40px; border-radius: 8px; padding: 0 12px; color: #35432e; font-size: 13px; font-weight: 700; }
+.users-empty button:hover { background: #f1f5ed; }
+.users-content button:focus-visible { outline: 3px solid #70875c; outline-offset: 3px; }
