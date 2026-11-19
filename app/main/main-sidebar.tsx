@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import {
   ClipboardList,
   Layers,
@@ -35,6 +35,14 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 export function MainSidebar() {
+  return (
+    <Suspense fallback={<MainSidebarLoading />}>
+      <MainSidebarContent />
+    </Suspense>
+  );
+}
+
+function MainSidebarContent() {
   const pathname = usePathname();
   const [permissions, setPermissions] = useState<FeaturePermissions | null>(null);
 
@@ -70,8 +78,27 @@ export function MainSidebar() {
               {label}
             </Link>
           );
-        }) : <span className="dashboard-nav-loading" role="status">Memuat akses…</span>}
+        }) : <SidebarLoadingStatus />}
       </nav>
     </aside>
   );
+}
+
+function MainSidebarLoading() {
+  return (
+    <aside className="dashboard-sidebar" aria-label="Navigasi utama">
+      <Link className="dashboard-brand" href="/" aria-label="XL Perfumes beranda">
+        <span className="dashboard-brand-mark">XL</span>
+        <span>PERFUMES</span>
+      </Link>
+      <div className="sidebar-label">MANAJEMEN</div>
+      <nav className="dashboard-nav" aria-label="Fitur">
+        <SidebarLoadingStatus />
+      </nav>
+    </aside>
+  );
+}
+
+function SidebarLoadingStatus() {
+  return <span className="dashboard-nav-loading" role="status">Memuat akses…</span>;
 }

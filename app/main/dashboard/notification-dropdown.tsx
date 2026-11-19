@@ -90,7 +90,6 @@ export function NotificationDropdown() {
         >
           <header className="notification-header">
             <div>
-              <span className="dashboard-eyebrow">PUSAT INFORMASI</span>
               <h2 id="notification-title">
                 Notifikasi <span>{unreadIds.length}</span>
               </h2>
@@ -134,9 +133,6 @@ export function NotificationDropdown() {
               );
             })}
           </ul>
-          <footer className="notification-footer">
-            Notifikasi contoh untuk dashboard
-          </footer>
         </section>
       )}
     </div>

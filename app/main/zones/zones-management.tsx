@@ -1,14 +1,20 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { Layers, Pencil, Plus, Search, Trash2, X } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, Layers, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { DashboardFooter } from "@/components/layout/dashboard-footer";
 import { DataTable } from "@/components/ui/data-table";
 import { Modal } from "@/components/ui/modal";
 import { api, getApi, getApiError } from "@/lib/api";
 import { isBranch, type Branch } from "@/lib/branches";
-import { isZone, type Zone } from "@/lib/zones";
+import {
+  isZone,
+  isZoneCollector,
+  type Zone,
+  type ZoneCollector,
+} from "@/lib/zones";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -42,6 +48,7 @@ function dateLabel(value: string) {
 export function ZonesManagement() {
   const [zones, setZones] = useState<Zone[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
+  const [collectors, setCollectors] = useState<ZoneCollector[]>([]);
   const [search, setSearch] = useState("");
   const [editingZone, setEditingZone] = useState<Zone | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -51,11 +58,12 @@ export function ZonesManagement() {
 
   useEffect(() => {
     let isCurrent = true;
-    Promise.all([getApi("/zones"), getApi("/branches")])
-      .then(([zonesResponse, branchesResponse]) => {
+    Promise.all([getApi("/zones"), getApi("/branches"), getApi("/zones/collectors")])
+      .then(([zonesResponse, branchesResponse, collectorsResponse]) => {
         if (!isCurrent) return;
         const zonePayload = zonesResponse.data;
         const branchPayload = branchesResponse.data;
+        const collectorsPayload = collectorsResponse.data;
         if (!isRecord(zonePayload) || !Array.isArray(zonePayload.zones) ||
           !zonePayload.zones.every(isZone)) {
           throw new Error("API mengembalikan daftar zona yang tidak valid.");
@@ -64,8 +72,13 @@ export function ZonesManagement() {
           !branchPayload.branches.every(isBranch)) {
           throw new Error("API mengembalikan daftar cabang yang tidak valid.");
         }
+        if (!isRecord(collectorsPayload) || !Array.isArray(collectorsPayload.users) ||
+          !collectorsPayload.users.every(isZoneCollector)) {
+          throw new Error("API mengembalikan daftar pengguna collecting yang tidak valid.");
+        }
         setZones(zonePayload.zones);
         setBranches(branchPayload.branches);
+        setCollectors(collectorsPayload.users);
       })
       .catch((cause: unknown) => {
         if (isCurrent) setError(getApiError(cause));
@@ -104,6 +117,9 @@ export function ZonesManagement() {
     const body = {
       name: String(formData.get("name") ?? "").trim(),
       branchId: Number(formData.get("branchId")),
+      userPicId: String(formData.get("userPicId") ?? "")
+        ? Number(formData.get("userPicId"))
+        : null,
     };
     setIsSaving(true);
     try {
@@ -213,6 +229,11 @@ export function ZonesManagement() {
               renderCell: (zone) => zone.createdBy ?? "—",
             },
             {
+              id: "pic",
+              header: "PIC",
+              renderCell: (zone) => zone.picUsername ?? "—",
+            },
+            {
               id: "created-at",
               header: "DIBUAT PADA",
               className: "zones-date",
@@ -229,6 +250,14 @@ export function ZonesManagement() {
                   : undefined;
                 return (
                   <div className="zones-row-actions">
+                    <Link
+                      className="zones-row-action"
+                      href={`/main/zones/${zone.id}`}
+                      aria-label={`Buka detail zona ${zone.name}`}
+                    >
+                      <ArrowRight size={14} aria-hidden="true" />
+                      Detail
+                    </Link>
                     <button
                       className="zones-row-action"
                       type="button"
@@ -352,6 +381,26 @@ export function ZonesManagement() {
                 ))}
               </select>
             </label>
+            <label className="zones-form-field">
+              <span>PIC (Pengguna Collecting Aktif)</span>
+              <select
+                name="userPicId"
+                defaultValue={editingZone?.userPicId ?? ""}
+              >
+                <option value="">Pilih PIC (opsional)</option>
+                {collectors.map((collector) => (
+                  <option key={collector.id} value={collector.id}>
+                    {collector.username}
+                  </option>
+                ))}
+                {editingZone?.picUsername &&
+                  !collectors.some(({ id }) => id === editingZone.userPicId) && (
+                  <option value={editingZone.userPicId ?? ""}>
+                    {editingZone.picUsername} (nonaktif)
+                  </option>
+                )}
+              </select>
+            </label>
           </div>
           <footer className="zones-dialog-actions">
             <button
@@ -376,6 +425,7 @@ export function ZonesManagement() {
           </footer>
         </form>
       </Modal>
+
     </div>
   );
 }
