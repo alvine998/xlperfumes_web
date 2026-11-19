@@ -24,6 +24,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { api, getApi, getApiError } from "@/lib/api";
 import { isBranch, type Branch } from "@/lib/branches";
 import { isStore, type Store } from "@/lib/stores";
+import { isZone, type Zone } from "@/lib/zones";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -55,6 +56,7 @@ function dateLabel(value: string) {
 export function StoresManagement() {
   const [stores, setStores] = useState<Store[]>([]);
   const [availableBranches, setAvailableBranches] = useState<Branch[]>([]);
+  const [availableZones, setAvailableZones] = useState<Zone[]>([]);
   const [search, setSearch] = useState("");
   const [branchFilter, setBranchFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("newest");
@@ -68,11 +70,12 @@ export function StoresManagement() {
 
   useEffect(() => {
     let isCurrent = true;
-    Promise.all([getApi("/stores"), getApi("/branches")])
-      .then(([storesResponse, branchesResponse]) => {
+    Promise.all([getApi("/stores"), getApi("/branches"), getApi("/zones")])
+      .then(([storesResponse, branchesResponse, zonesResponse]) => {
         if (!isCurrent) return;
         const storePayload = storesResponse.data;
         const branchPayload = branchesResponse.data;
+        const zonePayload = zonesResponse.data;
         if (!isRecord(storePayload) || !Array.isArray(storePayload.stores) ||
           !storePayload.stores.every(isStore)) {
           throw new Error("API mengembalikan daftar toko yang tidak valid.");
@@ -81,8 +84,13 @@ export function StoresManagement() {
           !branchPayload.branches.every(isBranch)) {
           throw new Error("API mengembalikan daftar cabang yang tidak valid.");
         }
+        if (!isRecord(zonePayload) || !Array.isArray(zonePayload.zones) ||
+          !zonePayload.zones.every(isZone)) {
+          throw new Error("API mengembalikan daftar zona yang tidak valid.");
+        }
         setStores(storePayload.stores);
         setAvailableBranches(branchPayload.branches);
+        setAvailableZones(zonePayload.zones);
       })
       .catch((cause: unknown) => {
         if (isCurrent) setError(getApiError(cause));
@@ -190,14 +198,23 @@ export function StoresManagement() {
     const selectedBranch = availableBranches.find(
       (branch) => String(branch.id) === selectedBranchId,
     );
+    const selectedZonaId = String(data.get("zonaId") ?? "");
+    const selectedZone = availableZones.find(
+      (zone) => String(zone.id) === selectedZonaId,
+    );
     if (!selectedBranch && !editingStore) {
       toast.error("Pilih cabang untuk toko ini.");
+      return;
+    }
+    if (selectedZone && selectedZone.branchId !== selectedBranch?.id) {
+      toast.error("Pilih zona yang sesuai dengan cabang toko.");
       return;
     }
     const body = {
       name: String(data.get("name") ?? "").trim(),
       branch: selectedBranch?.name ?? editingStore?.branch ?? "",
       branchId: selectedBranch?.id ?? null,
+      zonaId: selectedZone?.id ?? null,
       address: String(data.get("address") ?? "").trim(),
       latitude: Number(data.get("latitude")),
       longitude: Number(data.get("longitude")),
@@ -627,6 +644,21 @@ export function StoresManagement() {
                   untuk mempertahankan data lama.
                 </small>
               )}
+            </label>
+            <label className="stores-form-field">
+              <span>Zona</span>
+              <select
+                name="zonaId"
+                defaultValue={editingStore?.zonaId ?? ""}
+              >
+                <option value="">Tanpa zona</option>
+                {availableZones.map((zone) => (
+                  <option key={zone.id} value={zone.id}>
+                    {zone.name} — {zone.branch}
+                  </option>
+                ))}
+              </select>
+              <small>Pilih zona yang terhubung dengan cabang toko.</small>
             </label>
             <label className="stores-form-field">
               <span>Alamat</span>

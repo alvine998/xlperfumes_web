@@ -3,6 +3,8 @@ export type Store = {
   name: string;
   branch: string;
   branchId?: number | null;
+  zonaId?: number | null;
+  zona?: string | null;
   address: string;
   latitude: number;
   longitude: number;
@@ -17,6 +19,12 @@ export function isStore(value: unknown): value is Store {
     (!("branchId" in value) ||
       value.branchId === null ||
       typeof value.branchId === "number") &&
+    (!("zonaId" in value) ||
+      value.zonaId === null ||
+      typeof value.zonaId === "number") &&
+    (!("zona" in value) ||
+      value.zona === null ||
+      typeof value.zona === "string") &&
     "address" in value && typeof value.address === "string" &&
     "latitude" in value && typeof value.latitude === "number" &&
     "longitude" in value && typeof value.longitude === "number" &&

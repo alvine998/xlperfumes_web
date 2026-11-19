@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   ClipboardList,
+  Layers,
   LayoutDashboard,
   MapPin,
   Package,
@@ -22,6 +23,7 @@ const NAV_ITEMS: { href: string; label: string; feature: FeatureKey; Icon: Lucid
   { href: "/main/store-stock", label: "Stok Toko", feature: "inventory", Icon: Package },
   { href: "/main/variants", label: "Daftar Varian", feature: "inventory", Icon: Tags },
   { href: "/main/branches", label: "Daftar Cabang", feature: "stores", Icon: MapPin },
+  { href: "/main/zones", label: "Daftar Zona", feature: "stores", Icon: Layers },
   { href: "/main/stores", label: "Daftar Toko", feature: "stores", Icon: Store },
   { href: "/main/users", label: "Pengguna", feature: "users", Icon: UsersRound },
   { href: "/main/roles", label: "Akses Peran", feature: "users", Icon: ShieldCheck },
