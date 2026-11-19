@@ -1,0 +1,82 @@
+.warehouse-stock-content { max-width: 1500px; }
+.warehouse-stock-heading { align-items: center; margin-bottom: 25px; }
+.warehouse-stock-heading-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.warehouse-stock-total { display: inline-flex; align-items: center; gap: 8px; min-height: 42px; border: 1px solid var(--dashboard-line); padding: 0 13px; color: #55594b; font-size: 10px; font-weight: 700; letter-spacing: .08em; white-space: nowrap; }
+.warehouse-stock-total svg { width: 17px; height: 17px; color: #7c8065; }
+.warehouse-stock-action { display: inline-flex; min-height: 42px; align-items: center; justify-content: center; gap: 8px; border: 1px solid #34402f; border-radius: 11px; padding: 0 15px; color: #fff; background: linear-gradient(145deg, #526148, #34402f); font-size: 12px; font-weight: 700; text-decoration: none; white-space: nowrap; box-shadow: 4px 4px 9px #bfc6bb; }
+.warehouse-stock-action svg { width: 16px; height: 16px; }
+.warehouse-stock-action:hover { background: linear-gradient(145deg, #46563d, #2d392a); }
+.warehouse-stock-action.outgoing { border-color: #a74736; background: linear-gradient(145deg, #c4614e, #a74736); box-shadow: 4px 4px 9px #dfc4bd; }
+.warehouse-stock-panel { border: 1px solid var(--dashboard-line); background: #fff; }
+.warehouse-stock-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 22px 24px; }
+.warehouse-stock-panel-header h2 { display: flex; align-items: center; gap: 9px; margin: 7px 0 5px; font-family: Georgia, serif; font-size: 23px; font-weight: 400; letter-spacing: -.03em; }
+.warehouse-stock-panel-header h2 span { display: grid; min-width: 22px; height: 22px; place-items: center; border-radius: 12px; padding: 0 6px; color: #666354; background: #efede6; font-family: Arial, sans-serif; font-size: 11px; }
+.warehouse-stock-panel-header p { margin: 0; color: #65665d; font-size: 13px; }
+.warehouse-stock-filter { position: relative; display: flex; width: 190px; height: 40px; align-items: center; border: 1px solid var(--dashboard-line); padding: 0 10px; background: #fff; }
+.warehouse-stock-filter select { width: 100%; height: 100%; appearance: none; border: 0; outline: 0; color: #303228; background: transparent; font: inherit; font-size: 12px; cursor: pointer; }
+.warehouse-stock-filter svg { width: 15px; height: 15px; flex: 0 0 auto; pointer-events: none; color: #77796c; }
+.warehouse-stock-table-wrap { overflow-x: auto; border-top: 1px solid var(--dashboard-line); }
+.warehouse-stock-table { width: 100%; min-width: 850px; border-collapse: collapse; text-align: left; }
+.warehouse-stock-table thead { background: #f7f6f2; }
+.warehouse-stock-table th { height: 44px; padding: 0 16px; color: #626359; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+.warehouse-stock-table th:first-child, .warehouse-stock-table td:first-child { padding-left: 24px; }
+.warehouse-stock-table td { height: 70px; border-top: 1px solid #eeede7; padding: 10px 16px; color: #3e4037; font-size: 13px; }
+.warehouse-stock-name { color: #292b24; font-size: 14px; font-weight: 600; }
+.warehouse-stock-branch { display: inline-flex; border: 1px solid #e3e2d9; border-radius: 20px; padding: 5px 10px; color: #515448; background: #faf9f6; font-size: 11px; }
+.warehouse-stock-quantity { color: #34372c; font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.warehouse-stock-row-actions { display: flex; flex-wrap: wrap; gap: 7px; }
+.warehouse-row-action { display: inline-flex; min-height: 33px; align-items: center; justify-content: center; gap: 5px; border: 1px solid #e0e3dc; border-radius: 8px; padding: 0 9px; color: #367c46; background: #fff; cursor: pointer; font: inherit; font-size: 11px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.warehouse-row-action svg { width: 14px; height: 14px; }
+.warehouse-row-action:hover { background: #f1f4ee; }
+.warehouse-row-action.reduce { color: #ad4e3d; }
+.warehouse-row-action.check { color: #48513e; }
+.warehouse-stock-state { height: 116px !important; color: #62645b !important; text-align: center; }
+.warehouse-stock-footer { border-top: 1px solid #eeede7; padding: 15px 24px; color: #64665c; font-size: 12px; }
+.warehouse-stock-footer strong { color: #303228; }
+.warehouse-stock-backdrop { position: fixed; z-index: 1000; inset: 0; display: grid; place-items: center; overflow-y: auto; padding: 20px; background: #22291f66; backdrop-filter: blur(4px); }
+.warehouse-stock-dialog { display: flex; width: min(100%, 520px); max-height: calc(100vh - 40px); flex-direction: column; border: 1px solid #e8e9e2; border-radius: 16px; color: #292b24; background: #fff; }
+.warehouse-stock-dialog > header { display: flex; justify-content: space-between; gap: 16px; border-bottom: 1px solid #eeede7; padding: 22px; }
+.warehouse-stock-dialog h2 { margin: 7px 0 4px; font-family: Georgia, serif; font-size: 23px; font-weight: 400; }
+.warehouse-stock-dialog header p { margin: 0; color: #65665d; font-size: 12px; }
+.warehouse-stock-dialog header button { display: grid; width: 34px; height: 34px; flex: 0 0 auto; place-items: center; border: 1px solid #e1e3dc; border-radius: 8px; color: #4c5045; background: #fff; cursor: pointer; }
+.warehouse-stock-dialog header button svg { width: 17px; height: 17px; }
+.warehouse-stock-detail-list { overflow: auto; padding: 8px 22px; }
+.warehouse-stock-detail-list > div { display: flex; min-height: 48px; align-items: center; gap: 10px; border-bottom: 1px solid #f0efe9; color: #3e4037; font-size: 13px; }
+.warehouse-stock-detail-list svg { width: 16px; height: 16px; color: #727a62; }
+.warehouse-stock-detail-list span { flex: 1; font-variant-numeric: tabular-nums; }
+.warehouse-stock-detail-list small { color: #65745a; font-size: 11px; }
+.warehouse-stock-dialog > footer { display: flex; justify-content: end; border-top: 1px solid #eeede7; padding: 14px 22px; }
+.warehouse-stock-close { min-height: 38px; border: 1px solid #34402f; border-radius: 9px; padding: 0 15px; color: #fff; background: #3f4c37; cursor: pointer; font: inherit; font-size: 12px; font-weight: 600; }
+@media (max-width: 900px) { .warehouse-stock-heading { align-items: flex-start; flex-direction: column; gap: 16px; } .warehouse-stock-panel-header { align-items: flex-start; flex-direction: column; } }
+@media (max-width: 600px) { .warehouse-stock-heading-actions { width: 100%; } .warehouse-stock-total { flex: 1 0 100%; } .warehouse-stock-action { flex: 1; } .warehouse-stock-panel-header { padding: 18px 16px; } .warehouse-stock-filter { width: 100%; } .warehouse-stock-table th:first-child, .warehouse-stock-table td:first-child { padding-left: 16px; } .warehouse-stock-footer { padding: 14px 16px; } }
+.movement-heading { margin-bottom: 22px; }
+.movement-panel-header { align-items: center; }
+.warehouse-scan-controls { padding: 0 24px 20px; }
+.warehouse-scan-controls > label { display: block; margin-bottom: 7px; color: #44463d; font-size: 12px; font-weight: 700; }
+.warehouse-scan-controls form { display: flex; gap: 9px; }
+.warehouse-scan-input { display: flex; min-width: 0; height: 44px; flex: 1; align-items: center; gap: 9px; border: 1px solid #dfe1d8; border-radius: 8px; padding: 0 12px; background: #fff; }
+.warehouse-scan-input:focus-within { outline: 2px solid #65745a; outline-offset: 2px; }
+.warehouse-scan-input svg { width: 17px; height: 17px; flex: 0 0 auto; color: #727a62; }
+.warehouse-scan-input input { width: 100%; min-width: 0; border: 0; outline: 0; color: #292b24; background: transparent; font: inherit; font-size: 13px; }
+.warehouse-scan-input input::placeholder { color: #77796f; }
+.warehouse-scan-add, .warehouse-remove-item { display: inline-flex; min-height: 40px; align-items: center; justify-content: center; gap: 6px; border: 1px solid #e0e3dc; border-radius: 8px; padding: 0 13px; color: #35412f; background: #fff; cursor: pointer; font: inherit; font-size: 12px; font-weight: 600; }
+.warehouse-scan-add:hover, .warehouse-remove-item:hover { background: #f1f4ee; }
+.warehouse-scan-add:disabled { cursor: not-allowed; opacity: .5; }
+.warehouse-camera-preview { display: none; width: min(100%, 520px); max-height: 340px; margin: 15px auto 0; border-radius: 10px; background: #20221b; object-fit: cover; }
+.warehouse-camera-preview.is-active { display: block; }
+.warehouse-camera-error { margin: 10px 0 0; color: #a74736; font-size: 12px; }
+.warehouse-scan-source-actions { display: flex; align-items: center; justify-content: end; gap: 9px; flex-wrap: wrap; }
+.warehouse-gallery-input { display: none; }
+.warehouse-stock-action.gallery { border-color: #777b60; color: #414635; background: #f6f6f0; box-shadow: 3px 3px 8px #d9dbd1; }
+.warehouse-stock-action.gallery:hover { background: #eeefe5; }
+.warehouse-stock-action.gallery:disabled { cursor: wait; opacity: .65; }
+.movement-table { min-width: 620px; }
+.warehouse-movement-barcode { color: #484a41 !important; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px !important; }
+.warehouse-movement-branch { display: block; margin-top: 4px; color: #74766c; font-size: 11px; }
+.warehouse-remove-item { min-height: 33px; color: #ad4e3d; }
+.warehouse-remove-item svg { width: 14px; height: 14px; }
+.warehouse-movement-footer { display: flex; align-items: center; justify-content: space-between; gap: 15px; border-top: 1px solid #eeede7; padding: 16px 24px; color: #64665c; font-size: 12px; }
+.warehouse-movement-footer strong { color: #303228; }
+.warehouse-movement-footer .warehouse-stock-action { min-height: 40px; }
+.warehouse-movement-footer .warehouse-stock-action:disabled { cursor: not-allowed; opacity: .5; box-shadow: none; }
+@media (max-width: 600px) { .movement-panel-header { align-items: stretch; } .warehouse-scan-source-actions { justify-content: stretch; } .warehouse-scan-source-actions .warehouse-stock-action { flex: 1; } .warehouse-scan-controls { padding: 0 16px 18px; } .warehouse-scan-controls form { flex-direction: column; } .warehouse-scan-add { min-height: 42px; } .warehouse-movement-footer { align-items: stretch; flex-direction: column; padding: 14px 16px; } }

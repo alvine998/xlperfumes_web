@@ -10,6 +10,7 @@ import {
   MapPin,
   Clipboard,
   Package,
+  Warehouse,
   ShieldCheck,
   Store,
   Tags,
@@ -22,6 +23,7 @@ import { isFeaturePermissions, type FeatureKey, type FeaturePermissions } from "
 const NAV_ITEMS: { href: string; label: string; feature: FeatureKey; Icon: LucideIcon }[] = [
   { href: "/main/dashboard", label: "Ringkasan", feature: "overview", Icon: LayoutDashboard },
   { href: "/main/store-stock", label: "Stok Toko", feature: "inventory", Icon: Package },
+  { href: "/main/warehouse-stock", label: "Stok Gudang", feature: "inventory", Icon: Warehouse },
   { href: "/main/variants", label: "Daftar Varian", feature: "inventory", Icon: Tags },
   { href: "/main/products", label: "Daftar Produk", feature: "inventory", Icon: Clipboard },
   { href: "/main/branches", label: "Daftar Cabang", feature: "stores", Icon: MapPin },
