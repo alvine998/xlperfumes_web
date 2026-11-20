@@ -210,7 +210,7 @@ export function WarehouseMovementForm({ direction }: { direction: Direction }) {
             <thead><tr><th>Kode Barcode</th><th>Nama Barang</th><th>Aksi</th></tr></thead>
             <tbody>
               {items.length === 0 ? <tr><td className="warehouse-stock-state" colSpan={3}>Belum ada barang di daftar.</td></tr> : items.map((item) => (
-                <tr key={item.barcode}><td className="warehouse-movement-barcode">{item.barcode}</td><td><strong className="warehouse-stock-name">{item.name}</strong><small className="warehouse-movement-branch">{item.branch}</small></td><td><button className="warehouse-remove-item" type="button" onClick={() => setItems((current) => current.filter((candidate) => candidate.barcode !== item.barcode))}><Trash2 aria-hidden="true" /> Hapus</button></td></tr>
+                <tr key={item.barcode}><td className="warehouse-movement-barcode">{item.barcode}</td><td><strong className="warehouse-stock-name">{item.name}</strong><small className="warehouse-movement-branch">{item.branch}</small></td><td><button className="warehouse-remove-item" type="button" aria-label={`${isIncoming ? "Hapus" : "Hapus dari daftar"} ${item.name} ${item.barcode}`} onClick={() => setItems((current) => current.filter((candidate) => candidate.barcode !== item.barcode))}><Trash2 aria-hidden="true" /> {isIncoming ? "Hapus" : "Hapus dari daftar"}</button></td></tr>
               ))}
             </tbody>
           </table>
