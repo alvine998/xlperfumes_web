@@ -10,6 +10,7 @@ import { isStore, type Store } from "@/lib/stores";
 type PaperSize = "A4" | "A3";
 type PrintMode = "normal" | "cutting";
 type Pagination = { page: number; limit: number; total: number; totalPages: number };
+const STORE_PRINT_PAGE_SIZE = 20;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -30,6 +31,9 @@ export function StoreBarcodes() {
   const [printMode, setPrintMode] = useState<PrintMode>("normal");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const printSheets = Array.from({ length: Math.ceil(stores.length / STORE_PRINT_PAGE_SIZE) }, (_, index) =>
+    stores.slice(index * STORE_PRINT_PAGE_SIZE, (index + 1) * STORE_PRINT_PAGE_SIZE),
+  );
 
   useEffect(() => {
     let active = true;
@@ -124,6 +128,15 @@ export function StoreBarcodes() {
                 {qrCodes[store.id] ? <Image src={qrCodes[store.id]} alt={`QR Code ${store.name}`} width={180} height={180} unoptimized /> : <div className="store-barcode-qr-loading">Membuat QR…</div>}
                 <div className="store-barcode-details"><h2>{store.name}</h2><p>ID Toko: <strong>{store.id}</strong></p><small>Terdaftar pada {dateLabel(store.createdAt)}</small></div>
               </article>)}</div>}
+
+        <div className="store-barcode-print-sheets" aria-hidden="true">
+          {printSheets.map((sheet, sheetIndex) => <section className="store-barcode-print-sheet" key={`${pagination.page}-${sheetIndex}`}>
+            {sheet.map((store) => <article className="store-barcode-print-card" key={store.id}>
+              {qrCodes[store.id] && <Image src={qrCodes[store.id]} alt="" width={180} height={180} unoptimized />}
+              <div className="store-barcode-print-details"><h2>{store.name}</h2><p>ID Toko: <strong>{store.id}</strong></p></div>
+            </article>)}
+          </section>)}
+        </div>
 
         <footer className="store-barcodes-pagination">
           <span>Menampilkan <strong>{stores.length ? (pagination.page - 1) * pagination.limit + 1 : 0}–{(pagination.page - 1) * pagination.limit + stores.length}</strong> dari <strong>{pagination.total}</strong> toko</span>
