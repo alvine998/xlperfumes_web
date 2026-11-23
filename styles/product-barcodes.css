@@ -1,0 +1,96 @@
+.product-barcodes-content { max-width: 1600px; }
+.product-barcodes-heading { align-items: center; margin-bottom: 24px; }
+.product-barcodes-heading p { margin: 7px 0 0; color: #65665d; font-size: 15px; }
+.product-barcodes-print-all { display: inline-flex; min-height: 46px; align-items: center; justify-content: center; gap: 9px; border: 1px solid #31543b; border-radius: 9px; padding: 0 17px; color: #fff; background: #31543b; box-shadow: 4px 4px 9px #d7dfd8, -3px -3px 8px #fff; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.product-barcodes-print-all:hover { background: #26442f; }
+.product-barcodes-print-all:disabled { cursor: wait; opacity: .55; }
+.product-barcodes-print-all:focus-visible, .product-barcode-print-one:focus-visible, .product-barcodes-mode button:focus-visible { outline: 2px solid #31543b; outline-offset: 3px; }
+.product-barcodes-print-all svg, .product-barcode-print-one svg { width: 17px; height: 17px; }
+.product-barcodes-panel { overflow: hidden; border: 1px solid #e6e5dc; background: #fff; }
+.product-barcodes-filters { display: flex; flex-wrap: wrap; align-items: end; gap: 13px; border-bottom: 1px solid #e9e8e1; padding: 19px 20px; background: #fff; }
+.product-barcodes-filter { display: grid; min-width: 148px; gap: 6px; color: #55574d; font-size: 11px; font-weight: 700; }
+.product-barcodes-filter > select, .product-barcodes-date { box-sizing: border-box; width: 100%; height: 41px; border: 1px solid #deded5; color: #292b24; background: #fff; font: inherit; font-size: 12px; }
+.product-barcodes-filter > select { padding: 0 10px; }
+.product-barcodes-date { display: flex; align-items: center; gap: 8px; padding: 0 9px; }
+.product-barcodes-date svg { width: 16px; height: 16px; flex: 0 0 auto; color: #77796c; }
+.product-barcodes-date input { width: 100%; min-width: 0; border: 0; outline: 0; color: #292b24; background: transparent; font: inherit; font-size: 12px; }
+.product-barcodes-mode-wrap { min-width: 0; }
+.product-barcodes-mode { display: flex; height: 41px; align-items: stretch; border: 1px solid #deded5; padding: 3px; background: #f7f7f3; }
+.product-barcodes-mode button { min-width: 104px; border: 0; padding: 0 10px; color: #55574d; background: transparent; font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
+.product-barcodes-mode button[aria-pressed="true"] { color: #fff; background: #5a48c8; }
+.product-barcodes-mode button:first-child[aria-pressed="true"] { background: #31543b; }
+.product-barcodes-mode button:focus-visible { position: relative; }
+.product-barcodes-state { margin: 0; padding: 54px 20px; color: #696a61; text-align: center; font-size: 14px; }
+.product-barcodes-error { margin: 18px 20px 0; border: 1px solid #e4c5bd; padding: 13px 15px; color: #8b4032; background: #fff8f6; text-align: left; }
+.product-barcode-groups { display: grid; gap: 20px; padding: 20px; }
+.product-barcode-group { overflow: hidden; border: 1px solid #e7e6de; background: #fff; }
+.product-barcode-group-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; border-bottom: 1px solid #eeede7; padding: 13px 16px; background: #fbfaf7; }
+.product-barcode-group-heading > div > span { color: #77796f; font-size: 9px; font-weight: 800; letter-spacing: .11em; }
+.product-barcode-group-heading h2 { overflow-wrap: anywhere; margin: 3px 0 0; color: #292b24; font-size: 17px; font-weight: 700; }
+.product-barcode-group-heading > strong { flex: 0 0 auto; border: 1px solid #e3e2d9; border-radius: 20px; padding: 6px 10px; color: #55574d; background: #fff; font-size: 10px; }
+.product-barcode-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; padding: 14px; }
+.product-barcode-card { display: flex; min-width: 0; align-items: center; flex-direction: column; gap: 8px; border: 1px solid #e8e7df; padding: 12px 10px; background: #fff; text-align: center; }
+.product-barcode-qr-label { display: inline-flex; align-items: center; gap: 5px; color: #72746a; font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.product-barcode-qr-label svg { width: 13px; height: 13px; color: #5a48c8; }
+.product-barcode-card > img, .product-barcode-qr-loading { display: grid; width: 126px; height: 126px; place-items: center; object-fit: contain; }
+.product-barcode-qr-loading { color: #77776f; background: #f6f5f1; font-size: 10px; }
+.product-barcode-code { display: grid; min-width: 0; gap: 3px; }
+.product-barcode-code span { color: #77796f; font-size: 9px; font-weight: 700; }
+.product-barcode-code strong { max-width: 100%; color: #292b24; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; overflow-wrap: anywhere; }
+.product-barcode-print-one { display: inline-flex; min-height: 34px; align-items: center; justify-content: center; gap: 6px; border: 1px solid #d8d5ee; border-radius: 7px; padding: 0 13px; color: #5140b4; background: #f6f4ff; font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
+.product-barcode-print-one:hover { background: #ebe8ff; }
+.product-barcode-print-one:disabled { cursor: wait; opacity: .5; }
+.product-barcode-print-one svg { width: 14px; height: 14px; }
+.product-barcodes-footer { border-top: 1px solid #e9e8e1; padding: 14px 20px; color: #66675e; font-size: 12px; }
+.product-barcodes-footer strong { color: #292b24; }
+.product-barcode-print-sheets { display: none; }
+@media (max-width: 1000px) {
+  .product-barcodes-filters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .product-barcodes-filter { min-width: 0; }
+}
+
+@media (max-width: 700px) {
+  .product-barcodes-heading { align-items: flex-start; flex-direction: column; gap: 14px; }
+  .product-barcodes-print-all { width: 100%; }
+  .product-barcodes-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 15px; }
+  .product-barcodes-mode-wrap { grid-column: 1 / -1; }
+  .product-barcodes-mode button { flex: 1; }
+  .product-barcode-groups { gap: 13px; padding: 12px; }
+  .product-barcode-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 9px; }
+  .product-barcode-card { padding: 10px 7px; }
+  .product-barcode-card > img, .product-barcode-qr-loading { width: 112px; height: 112px; }
+}
+
+@media (max-width: 420px) {
+  .product-barcodes-filters { grid-template-columns: 1fr; }
+  .product-barcodes-mode-wrap { grid-column: auto; }
+}
+
+@page { size: A4 portrait; margin: 7mm; }
+
+@media print {
+  html[data-product-barcode-print] body { background: #fff !important; }
+  html[data-product-barcode-print] body * { visibility: hidden !important; }
+  html[data-product-barcode-print] .product-barcode-print-sheets,
+  html[data-product-barcode-print] .product-barcode-print-sheets * { visibility: visible !important; }
+  html[data-product-barcode-print] .dashboard-shell { display: block !important; width: 100%; min-height: 0; }
+  html[data-product-barcode-print] .dashboard-sidebar,
+  html[data-product-barcode-print] .dashboard-topbar,
+  html[data-product-barcode-print] .product-barcodes-heading,
+  html[data-product-barcode-print] .product-barcodes-panel { display: none !important; }
+  html[data-product-barcode-print] .dashboard-main { width: 100%; }
+  html[data-product-barcode-print] .product-barcodes-content { box-sizing: border-box; width: 100%; max-width: none; margin: 0; padding: 0; }
+  html[data-product-barcode-print] .product-barcode-print-sheets { position: static; display: block !important; width: 100%; margin: 0; padding: 0; background: #fff; }
+  html[data-product-barcode-print] .product-barcode-print-sheet { box-sizing: border-box; display: grid; width: 100%; height: 282mm; grid-template-columns: repeat(9, minmax(0, 1fr)); grid-template-rows: repeat(8, minmax(0, 1fr)); gap: 1.5mm; break-inside: avoid; page-break-inside: avoid; break-after: page; page-break-after: always; }
+  html[data-product-barcode-print="single"] .product-barcode-print-sheet { display: none !important; }
+  html[data-product-barcode-print="single"] .product-barcode-print-sheet[data-print-target="true"] { display: grid !important; }
+  html[data-product-barcode-print="single"] .product-barcode-print-sheet[data-print-target="true"] { break-after: auto; page-break-after: auto; }
+  html[data-product-barcode-print="single"] .product-barcode-print-sheet[data-print-target="true"] .product-barcode-print-card:not([data-print-target="true"]) { display: none; }
+  html[data-product-barcode-print] .product-barcode-print-sheet:last-child { break-after: auto; page-break-after: auto; }
+  html[data-product-barcode-print] .product-barcode-print-card { box-sizing: border-box; display: flex; min-width: 0; min-height: 0; align-items: center; justify-content: center; flex-direction: column; gap: .5mm; overflow: hidden; border: .2mm solid #d8d8d2; padding: 1mm; text-align: center; break-inside: avoid; }
+  html[data-product-barcode-mode="cutting"] .product-barcode-print-card { border: .3mm dashed #555; padding: .5mm; }
+  html[data-product-barcode-print] .product-barcode-print-variant { display: block; max-width: 100%; color: #111; font-family: Arial, sans-serif; font-size: 6pt; line-height: 1.1; overflow-wrap: anywhere; }
+  html[data-product-barcode-print] .product-barcode-print-card img,
+  html[data-product-barcode-print] .product-barcode-print-qr-placeholder { display: block; width: 15mm; height: 15mm; object-fit: contain; }
+  html[data-product-barcode-print] .product-barcode-print-code { max-width: 100%; color: #111; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 5.5pt; line-height: 1; overflow-wrap: anywhere; }
+}

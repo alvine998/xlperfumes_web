@@ -11,6 +11,7 @@ import {
   Clipboard,
   Package,
   PackagePlus,
+  QrCode,
   Warehouse,
   ShieldCheck,
   Store,
@@ -40,6 +41,7 @@ const NAV_GROUPS: {
       { href: "/main/variants", label: "Daftar Varian", feature: "inventory", Icon: Tags },
       { href: "/main/products", label: "Daftar Produk", feature: "inventory", Icon: Clipboard },
       { href: "/main/products/generate", label: "Generate Produk", feature: "inventory", Icon: PackagePlus },
+      { href: "/main/product-barcodes", label: "Cetak Barcode Produk", feature: "inventory", Icon: QrCode },
     ],
   },
   {

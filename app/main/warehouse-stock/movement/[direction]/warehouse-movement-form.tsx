@@ -166,6 +166,8 @@ export function WarehouseMovementForm({ direction }: { direction: Direction }) {
         throw new Error("Data hasil pergerakan barang tidak valid.");
       }
       toast.success(`${items.length} barang berhasil diproses.`);
+      setItems([]);
+      setBarcode("");
       router.push("/main/warehouse-stock");
     } catch (cause) {
       toast.error(getApiError(cause));
