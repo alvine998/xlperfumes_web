@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Activity, Search } from "lucide-react";
+import { Activity, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { DashboardFooter } from "@/components/layout/dashboard-footer";
 import { DataTable } from "@/components/ui/data-table";
 import { getApi, getApiError } from "@/lib/api";
@@ -17,6 +17,8 @@ type ActivityLog = {
   ipAddress: string | null;
   createdAt: string;
 };
+
+const PAGE_SIZES = [50, 100, 200, 500] as const;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -63,6 +65,8 @@ export function ActivityLogs() {
   const [userFilter, setUserFilter] = useState("all");
   const [branchFilter, setBranchFilter] = useState("all");
   const [actionFilter, setActionFilter] = useState("all");
+  const [pageSize, setPageSize] = useState<(typeof PAGE_SIZES)[number]>(50);
+  const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -115,7 +119,15 @@ export function ActivityLogs() {
     });
   }, [logs, search, startDate, endDate, userFilter, branchFilter, actionFilter]);
 
+  const pageCount = Math.max(1, Math.ceil(filteredLogs.length / pageSize));
+  const currentPage = Math.min(page, pageCount);
+  const firstRowIndex = (currentPage - 1) * pageSize;
+  const pageLogs = filteredLogs.slice(firstRowIndex, firstRowIndex + pageSize);
+  const rangeStart = filteredLogs.length ? firstRowIndex + 1 : 0;
+  const rangeEnd = Math.min(firstRowIndex + pageSize, filteredLogs.length);
+
   function clearFilters() {
+    setPage(1);
     setSearch("");
     setStartDate("");
     setEndDate("");
@@ -147,29 +159,29 @@ export function ActivityLogs() {
         <div className="activity-filters" aria-label="Filter aktivitas">
           <label className="activity-filter-field">
             <span>Tanggal mulai</span>
-            <input type="date" value={startDate} max={endDate || undefined} onChange={(event) => setStartDate(event.target.value)} />
+            <input type="date" value={startDate} max={endDate || undefined} onChange={(event) => { setPage(1); setStartDate(event.target.value); }} />
           </label>
           <label className="activity-filter-field">
             <span>Tanggal akhir</span>
-            <input type="date" value={endDate} min={startDate || undefined} onChange={(event) => setEndDate(event.target.value)} />
+            <input type="date" value={endDate} min={startDate || undefined} onChange={(event) => { setPage(1); setEndDate(event.target.value); }} />
           </label>
           <label className="activity-filter-field">
             <span>Pengguna</span>
-            <select value={userFilter} onChange={(event) => setUserFilter(event.target.value)}>
+            <select value={userFilter} onChange={(event) => { setPage(1); setUserFilter(event.target.value); }}>
               <option value="all">Semua pengguna</option>
               {users.map((username) => <option key={username} value={username}>{username}</option>)}
             </select>
           </label>
           <label className="activity-filter-field">
             <span>Cabang</span>
-            <select value={branchFilter} onChange={(event) => setBranchFilter(event.target.value)}>
+            <select value={branchFilter} onChange={(event) => { setPage(1); setBranchFilter(event.target.value); }}>
               <option value="all">Semua cabang</option>
               {branches.map((branch) => <option key={branch} value={branch}>{branch}</option>)}
             </select>
           </label>
           <label className="activity-filter-field">
             <span>Aksi</span>
-            <select value={actionFilter} onChange={(event) => setActionFilter(event.target.value)}>
+            <select value={actionFilter} onChange={(event) => { setPage(1); setActionFilter(event.target.value); }}>
               <option value="all">Semua aksi</option>
               {actions.map((action) => <option key={action} value={action}>{label(action)}</option>)}
             </select>
@@ -177,7 +189,7 @@ export function ActivityLogs() {
           <label className="activity-search">
             <Search aria-hidden="true" />
             <span className="sr-only">Cari aktivitas</span>
-            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Cari aktivitas" />
+            <input value={search} onChange={(event) => { setPage(1); setSearch(event.target.value); }} placeholder="Cari aktivitas" />
           </label>
           <button className="activity-clear-filters" type="button" onClick={clearFilters}>Atur ulang</button>
         </div>
@@ -196,7 +208,7 @@ export function ActivityLogs() {
             { id: "details", header: "DETAIL", className: "activity-details", renderCell: (log) => detailsLabel(log.details) },
             { id: "ip", header: "ALAMAT IP", className: "activity-ip", renderCell: (log) => log.ipAddress || "—" },
           ]}
-          rows={filteredLogs}
+          rows={pageLogs}
           getRowKey={(log) => log.id}
           isLoading={isLoading}
           hasError={Boolean(error)}
@@ -204,8 +216,44 @@ export function ActivityLogs() {
           emptyContent={<><span className="activity-empty-icon"><Activity aria-hidden="true" /></span><strong>{logs.length ? "Aktivitas tidak ditemukan" : "Belum ada aktivitas"}</strong><span>{logs.length ? "Ubah kata kunci pencarian." : "Catatan aktivitas akan muncul di sini."}</span></>}
         />
         <footer className="activity-table-footer">
-          <span>Menampilkan <strong>{filteredLogs.length}</strong> dari <strong>{logs.length}</strong> aktivitas</span>
-          <span>Data terbaru diurutkan pertama</span>
+          <span className="activity-page-summary">
+            Menampilkan <strong>{rangeStart}–{rangeEnd}</strong> dari <strong>{filteredLogs.length}</strong> aktivitas
+          </span>
+          <div className="activity-pagination">
+            <label className="activity-page-size">
+              Baris per halaman
+              <select
+                aria-label="Baris per halaman"
+                value={pageSize}
+                onChange={(event) => {
+                  const nextPageSize = PAGE_SIZES.find((size) => size === Number(event.target.value));
+                  if (nextPageSize) setPageSize(nextPageSize);
+                  setPage(1);
+                }}
+              >
+                {PAGE_SIZES.map((size) => <option key={size} value={size}>{size}</option>)}
+              </select>
+            </label>
+            <nav className="activity-page-nav" aria-label="Navigasi halaman log aktivitas">
+              <span>Halaman {currentPage} dari {pageCount}</span>
+              <button
+                type="button"
+                aria-label="Halaman sebelumnya"
+                onClick={() => setPage((current) => Math.max(1, current - 1))}
+                disabled={currentPage <= 1}
+              >
+                <ChevronLeft aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                aria-label="Halaman berikutnya"
+                onClick={() => setPage((current) => Math.min(pageCount, current + 1))}
+                disabled={currentPage >= pageCount}
+              >
+                <ChevronRight aria-hidden="true" />
+              </button>
+            </nav>
+          </div>
         </footer>
       </section>
       <DashboardFooter section="LOG AKTIVITAS" />

@@ -7,7 +7,8 @@ import { getApi, getApiError } from "@/lib/api";
 
 type WarehouseProduct = {
   id: number;
-  name: string;
+  variantId: number | null;
+  variantName: string | null;
   barcode: string;
   branchId: number;
   branch: string;
@@ -27,7 +28,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isProduct(value: unknown): value is WarehouseProduct {
-  return isRecord(value) && typeof value.id === "number" && typeof value.name === "string" &&
+  return isRecord(value) && typeof value.id === "number" &&
+    (typeof value.variantId === "number" || value.variantId === null) &&
+    (typeof value.variantName === "string" || value.variantName === null) &&
     typeof value.barcode === "string" && typeof value.branchId === "number" &&
     typeof value.branch === "string" && value.status === "di_gudang";
 }
@@ -69,10 +72,11 @@ export function WarehouseStockManagement() {
   const rows = useMemo(() => {
     const grouped = new Map<string, WarehouseRow>();
     for (const product of products) {
-      const key = `${product.branchId}:${product.name}`;
+      const variantLabel = product.variantName ?? "Varian belum dipetakan";
+      const key = `${product.branchId}:${product.variantId ?? "unknown"}`;
       const row = grouped.get(key) ?? {
         key,
-        name: product.name,
+        name: variantLabel,
         branchId: product.branchId,
         branch: product.branch,
         products: [],
@@ -121,7 +125,7 @@ export function WarehouseStockManagement() {
 
         <div className="warehouse-stock-table-wrap">
           <table className="warehouse-stock-table">
-            <thead><tr><th>Nama Barang</th><th>Cabang</th><th>Jumlah</th><th>Satuan</th><th>Aksi</th></tr></thead>
+            <thead><tr><th>Varian</th><th>Cabang</th><th>Jumlah</th><th>Satuan</th><th>Aksi</th></tr></thead>
             <tbody>
               {loading ? <tr><td className="warehouse-stock-state" colSpan={5}>Memuat stok gudang…</td></tr>
                 : error ? <tr><td className="warehouse-stock-state" colSpan={5} role="alert">Gagal memuat stok: {error}</td></tr>

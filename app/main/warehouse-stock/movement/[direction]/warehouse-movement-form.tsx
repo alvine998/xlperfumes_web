@@ -8,7 +8,7 @@ import toast from "react-hot-toast";
 import { api, getApi, getApiError } from "@/lib/api";
 
 type Direction = "in" | "out";
-type Product = { id: number; name: string; barcode: string; branchId: number; branch: string; status: string };
+type Product = { id: number; variantId: number | null; variantName: string | null; barcode: string; branchId: number; branch: string; status: string };
 type ScanResult = { rawValue: string };
 type Detector = { detect(source: HTMLVideoElement | ImageBitmap): Promise<ScanResult[]> };
 
@@ -23,7 +23,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isProduct(value: unknown): value is Product {
-  return isRecord(value) && typeof value.id === "number" && typeof value.name === "string" &&
+  return isRecord(value) && typeof value.id === "number" &&
+    (typeof value.variantId === "number" || value.variantId === null) &&
+    (typeof value.variantName === "string" || value.variantName === null) &&
     typeof value.barcode === "string" && typeof value.branchId === "number" &&
     typeof value.branch === "string" && typeof value.status === "string";
 }
@@ -207,10 +209,10 @@ export function WarehouseMovementForm({ direction }: { direction: Direction }) {
         </div>
         <div className="warehouse-stock-table-wrap">
           <table className="warehouse-stock-table movement-table">
-            <thead><tr><th>Kode Barcode</th><th>Nama Barang</th><th>Aksi</th></tr></thead>
+            <thead><tr><th>Kode Barcode</th><th>Varian</th><th>Aksi</th></tr></thead>
             <tbody>
               {items.length === 0 ? <tr><td className="warehouse-stock-state" colSpan={3}>Belum ada barang di daftar.</td></tr> : items.map((item) => (
-                <tr key={item.barcode}><td className="warehouse-movement-barcode">{item.barcode}</td><td><strong className="warehouse-stock-name">{item.name}</strong><small className="warehouse-movement-branch">{item.branch}</small></td><td><button className="warehouse-remove-item" type="button" aria-label={`${isIncoming ? "Hapus" : "Hapus dari daftar"} ${item.name} ${item.barcode}`} onClick={() => setItems((current) => current.filter((candidate) => candidate.barcode !== item.barcode))}><Trash2 aria-hidden="true" /> {isIncoming ? "Hapus" : "Hapus dari daftar"}</button></td></tr>
+                <tr key={item.barcode}><td className="warehouse-movement-barcode">{item.barcode}</td><td><strong className="warehouse-stock-name">{item.variantName ?? "Varian belum dipetakan"}</strong><small className="warehouse-movement-branch">{item.branch}</small></td><td><button className="warehouse-remove-item" type="button" aria-label={`${isIncoming ? "Hapus" : "Hapus dari daftar"} ${item.variantName ?? "produk"} ${item.barcode}`} onClick={() => setItems((current) => current.filter((candidate) => candidate.barcode !== item.barcode))}><Trash2 aria-hidden="true" /> {isIncoming ? "Hapus" : "Hapus dari daftar"}</button></td></tr>
               ))}
             </tbody>
           </table>

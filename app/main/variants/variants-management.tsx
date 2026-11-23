@@ -11,8 +11,11 @@ type Variant = {
   quantity: number;
   unit: string;
   unitPrice: number;
+  branchId: number | null;
+  branchName: string | null;
   createdAt: string;
 };
+type Branch = { id: number; name: string };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -22,7 +25,13 @@ function isVariant(value: unknown): value is Variant {
   return isRecord(value) && typeof value.id === "number" &&
     typeof value.name === "string" && typeof value.quantity === "number" &&
     typeof value.unit === "string" && typeof value.unitPrice === "number" &&
+    (typeof value.branchId === "number" || value.branchId === null) &&
+    (typeof value.branchName === "string" || value.branchName === null) &&
     typeof value.createdAt === "string";
+}
+
+function isBranch(value: unknown): value is Branch {
+  return isRecord(value) && typeof value.id === "number" && typeof value.name === "string";
 }
 
 function formatThousands(value: string | number) {
@@ -42,6 +51,7 @@ const rupiah = new Intl.NumberFormat("id-ID", {
 
 export function VariantsManagement() {
   const [variants, setVariants] = useState<Variant[]>([]);
+  const [branches, setBranches] = useState<Branch[]>([]);
   const [query, setQuery] = useState("");
   const [editingVariant, setEditingVariant] = useState<Variant | null>(null);
   const [quantityInput, setQuantityInput] = useState("");
@@ -53,12 +63,20 @@ export function VariantsManagement() {
 
   useEffect(() => {
     let active = true;
-    getApi("/variants")
-      .then(({ data }) => {
-        if (!isRecord(data) || !Array.isArray(data.variants) || !data.variants.every(isVariant)) {
+    Promise.all([getApi("/variants"), getApi("/products/branches")])
+      .then(([variantsResponse, branchesResponse]) => {
+        const variantsData: unknown = variantsResponse.data;
+        const branchesData: unknown = branchesResponse.data;
+        if (!isRecord(variantsData) || !Array.isArray(variantsData.variants) || !variantsData.variants.every(isVariant)) {
           throw new Error("Data varian dari API tidak valid.");
         }
-        if (active) setVariants(data.variants);
+        if (!isRecord(branchesData) || !Array.isArray(branchesData.branches) || !branchesData.branches.every(isBranch)) {
+          throw new Error("Data cabang dari API tidak valid.");
+        }
+        if (active) {
+          setVariants(variantsData.variants);
+          setBranches(branchesData.branches);
+        }
       })
       .catch((cause: unknown) => {
         if (active) setError(getApiError(cause));
@@ -98,6 +116,7 @@ export function VariantsManagement() {
       quantity: parseThousands(String(formData.get("quantity") ?? "")),
       unit: String(formData.get("unit") ?? "").trim(),
       unitPrice: parseThousands(String(formData.get("unitPrice") ?? "")),
+      branchId: Number(formData.get("branchId")),
     };
     setSaving(true);
     try {
@@ -140,7 +159,7 @@ export function VariantsManagement() {
         <div>
           <span className="dashboard-eyebrow">KATALOG PRODUK</span>
           <h1 id="variants-title">Daftar Varian</h1>
-          <p>Kelola nama varian, jumlah, satuan, dan harga satuan.</p>
+          <p>Kelola cabang, nama varian, jumlah, satuan, dan harga satuan.</p>
         </div>
         <div className="variants-heading-actions">
           <span className="variants-count"><Package aria-hidden="true" /> {variants.length} VARIAN</span>
@@ -167,11 +186,12 @@ export function VariantsManagement() {
         {error && <p className="variants-error" role="alert">{error}</p>}
         <div className="variants-table-wrap">
           <table className="variants-table">
-            <thead><tr><th>Nama Varian</th><th>Jumlah</th><th>Satuan</th><th>Harga Satuan</th><th><span className="sr-only">Aksi</span></th></tr></thead>
+            <thead><tr><th>Nama Varian</th><th>Cabang</th><th>Jumlah</th><th>Satuan</th><th>Harga Satuan</th><th><span className="sr-only">Aksi</span></th></tr></thead>
             <tbody>
-              {loading ? <tr><td className="variants-state" colSpan={5}>Memuat daftar varian…</td></tr> : error ? <tr><td className="variants-state" colSpan={5}>Data varian belum dapat dimuat.</td></tr> : filteredVariants.length === 0 ? <tr><td className="variants-state" colSpan={5}>{query ? "Varian tidak ditemukan." : "Belum ada varian. Tambahkan varian pertama Anda."}</td></tr> : filteredVariants.map((variant) => (
+              {loading ? <tr><td className="variants-state" colSpan={6}>Memuat daftar varian…</td></tr> : error ? <tr><td className="variants-state" colSpan={6}>Data varian belum dapat dimuat.</td></tr> : filteredVariants.length === 0 ? <tr><td className="variants-state" colSpan={6}>{query ? "Varian tidak ditemukan." : "Belum ada varian. Tambahkan varian pertama Anda."}</td></tr> : filteredVariants.map((variant) => (
                 <tr key={variant.id}>
                   <td className="variants-name">{variant.name}</td>
+                  <td>{variant.branchName ?? "Belum ditentukan"}</td>
                   <td className="variants-quantity">{variant.quantity.toLocaleString("id-ID")}</td>
                   <td>{variant.unit}</td>
                   <td className="variants-price">{rupiah.format(variant.unitPrice)}</td>
@@ -188,13 +208,14 @@ export function VariantsManagement() {
       </section>
 
       <dialog className="variants-dialog" ref={dialogRef} onClose={() => setEditingVariant(null)} aria-labelledby="variant-form-title">
-        <form onSubmit={handleSave}>
+          <form key={editingVariant?.id ?? "new-variant"} onSubmit={handleSave}>
           <header className="variants-dialog-header">
             <div><span className="dashboard-eyebrow">FORM VARIAN</span><h2 id="variant-form-title">{editingVariant ? "Ubah varian" : "Tambah varian"}</h2></div>
             <button className="variants-close-button" type="button" onClick={() => dialogRef.current?.close()} aria-label="Tutup form"><X aria-hidden="true" /></button>
           </header>
           <div className="variants-form-fields">
             <label>Nama Varian<input name="name" required maxLength={150} defaultValue={editingVariant?.name ?? ""} placeholder="Contoh: Eau de Parfum 50 ml" /></label>
+            <label>Cabang<select name="branchId" required defaultValue={editingVariant?.branchId?.toString() ?? ""}><option value="" disabled>Pilih cabang</option>{branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.name}</option>)}</select></label>
             <div className="variants-form-grid">
               <label>Jumlah<input name="quantity" type="text" inputMode="numeric" pattern="[0-9.]*" required value={quantityInput} onChange={(event) => setQuantityInput(formatThousands(event.target.value))} placeholder="0" /></label>
               <label>Satuan<input name="unit" required maxLength={40} defaultValue={editingVariant?.unit ?? ""} placeholder="Contoh: pcs" /></label>

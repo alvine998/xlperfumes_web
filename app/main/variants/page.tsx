@@ -12,7 +12,7 @@ import "../../../styles/variants.css";
 
 export const metadata: Metadata = {
   title: "Daftar Varian | XL Perfumes",
-  description: "Kelola varian, jumlah, satuan, dan harga satuan.",
+  description: "Kelola varian per cabang, jumlah, satuan, dan harga satuan.",
 };
 
 export default function VariantsPage() {

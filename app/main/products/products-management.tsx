@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CalendarDays, Eye, Package, RotateCcw, Search, Trash2, X } from "lucide-react";
+import Link from "next/link";
+import { CalendarDays, Eye, Package, PackagePlus, RotateCcw, Search, Trash2, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { api, getApi, getApiError } from "@/lib/api";
 
@@ -10,7 +11,7 @@ const STATUS_OPTIONS = [
   ["di_spg", "Di SPG"], ["di_collecting", "Di Collecting"], ["terjual", "Terjual"], ["rusak", "Rusak"],
 ] as const;
 type ProductStatus = (typeof STATUS_OPTIONS)[number][0];
-type Product = { id: number; name: string; barcode: string; branchId: number; branch: string; status: ProductStatus; createdAt: string; updatedAt: string };
+type Product = { id: number; variantId: number | null; variantName: string | null; barcode: string; branchId: number; branch: string; status: ProductStatus; createdAt: string; updatedAt: string };
 type Branch = { id: number; name: string };
 type ProductActivity = { id: number; username: string | null; action: string; createdAt: string };
 
@@ -19,7 +20,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isProduct(value: unknown): value is Product {
-  return isRecord(value) && typeof value.id === "number" && typeof value.name === "string" &&
+  return isRecord(value) && typeof value.id === "number" &&
+    (typeof value.variantId === "number" || value.variantId === null) &&
+    (typeof value.variantName === "string" || value.variantName === null) &&
     typeof value.barcode === "string" && typeof value.branchId === "number" &&
     typeof value.branch === "string" && STATUS_OPTIONS.some(([status]) => status === value.status) &&
     typeof value.createdAt === "string" && typeof value.updatedAt === "string";
@@ -115,7 +118,7 @@ export function ProductsManagement() {
   }
 
   async function deleteProduct(product: Product) {
-    if (!window.confirm(`Hapus produk “${product.name}” dengan barcode ${product.barcode}?`)) return;
+    if (!window.confirm(`Hapus produk varian “${product.variantName ?? "tidak diketahui"}” dengan barcode ${product.barcode}?`)) return;
     try {
       await api.delete(`/products/${product.id}`);
       setProducts((current) => current.filter((item) => item.id !== product.id));
@@ -129,14 +132,17 @@ export function ProductsManagement() {
     <div className="dashboard-content products-content">
       <section className="dashboard-heading products-heading" aria-labelledby="products-title">
         <div><span className="dashboard-eyebrow">INVENTARIS</span><h1 id="products-title">Daftar Produk</h1><p>Pantau lokasi dan status setiap produk dari kode barcode.</p></div>
-        <span className="products-count"><Package aria-hidden="true" /> {products.length} PRODUK</span>
+        <div className="products-heading-actions">
+          <span className="products-count"><Package aria-hidden="true" /> {products.length} PRODUK</span>
+          <Link className="products-generate-button" href="/main/products/generate"><PackagePlus aria-hidden="true" /> Generate Produk</Link>
+        </div>
       </section>
 
       <section className="products-panel" aria-labelledby="products-table-title">
         <header className="products-panel-header">
           <div><span className="dashboard-eyebrow">DATA PRODUK</span><h2 id="products-table-title">Semua produk <span>{products.length}</span></h2><p>Gunakan filter untuk menemukan produk yang dibutuhkan.</p></div>
           <div className="products-filters">
-            <label className="products-search"><Search aria-hidden="true" /><span className="sr-only">Cari nama barang atau kode QR</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Nama barang / kode QR" /></label>
+            <label className="products-search"><Search aria-hidden="true" /><span className="sr-only">Cari nama varian atau kode QR</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Nama varian / kode QR" /></label>
             <label className="products-filter-field"><span className="sr-only">Filter status</span><select value={status} onChange={(event) => setStatus(event.target.value)}><option value="">Semua Status</option>{STATUS_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
             <label className="products-filter-field products-date"><CalendarDays aria-hidden="true" /><span className="sr-only">Filter tanggal update</span><input type="date" value={date} onChange={(event) => setDate(event.target.value)} /></label>
             <label className="products-filter-field"><span className="sr-only">Filter cabang</span><select value={branchId} onChange={(event) => setBranchId(event.target.value)}><option value="">Semua Cabang</option>{branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.name}</option>)}</select></label>
@@ -145,10 +151,10 @@ export function ProductsManagement() {
         </header>
         {error && <p className="products-error" role="alert">{error}</p>}
         <div className="products-table-wrap"><table className="products-table">
-          <thead><tr><th>No</th><th>Nama Barang</th><th>Kode Barcode</th><th>Cabang</th><th>Status</th><th>Tanggal Update</th><th>Aksi</th></tr></thead>
+          <thead><tr><th>No</th><th>Varian</th><th>Kode Barcode</th><th>Cabang</th><th>Status</th><th>Tanggal Update</th><th>Aksi</th></tr></thead>
           <tbody>
             {loading ? <tr><td className="products-state" colSpan={7}>Memuat daftar produk…</td></tr> : error ? <tr><td className="products-state" colSpan={7}>Data produk belum dapat dimuat.</td></tr> : products.length === 0 ? <tr><td className="products-state" colSpan={7}>{search || status || date || branchId ? "Produk tidak ditemukan untuk filter ini." : "Belum ada data produk."}</td></tr> : products.map((product, index) => (
-              <tr key={product.id}><td className="products-number">{index + 1}</td><td className="products-name">{product.name}</td><td className="products-barcode">{product.barcode}</td><td><span className="products-branch">{product.branch}</span></td><td><span className={`products-status status-${product.status}`}>{statusLabel(product.status)}</span></td><td className="products-updated">{dateLabel(product.updatedAt)}</td><td><div className="products-actions"><button className="products-action-button" type="button" onClick={() => void openDetail(product)} disabled={detailLoading}><Eye aria-hidden="true" /> Detail</button><button className="products-action-button products-delete-button" type="button" onClick={() => void deleteProduct(product)}><Trash2 aria-hidden="true" /> Hapus</button></div></td></tr>
+              <tr key={product.id}><td className="products-number">{index + 1}</td><td className="products-name">{product.variantName ?? "Varian belum dipetakan"}</td><td className="products-barcode">{product.barcode}</td><td><span className="products-branch">{product.branch}</span></td><td><span className={`products-status status-${product.status}`}>{statusLabel(product.status)}</span></td><td className="products-updated">{dateLabel(product.updatedAt)}</td><td><div className="products-actions"><button className="products-action-button" type="button" onClick={() => void openDetail(product)} disabled={detailLoading}><Eye aria-hidden="true" /> Detail</button><button className="products-action-button products-delete-button" type="button" onClick={() => void deleteProduct(product)}><Trash2 aria-hidden="true" /> Hapus</button></div></td></tr>
             ))}
           </tbody>
         </table></div>
@@ -160,7 +166,8 @@ export function ProductsManagement() {
         {detail && <>
           <h3 className="products-dialog-section-title">Informasi Produk</h3>
           <dl className="products-detail-list">
-            <div><dt>Nama Barang</dt><dd>{detail.product.name}</dd></div>
+            <div><dt>ID Varian</dt><dd>{detail.product.variantId ?? "—"}</dd></div>
+            <div><dt>Nama Varian</dt><dd>{detail.product.variantName ?? "Varian belum dipetakan"}</dd></div>
             <div><dt>Kode Barcode</dt><dd>{detail.product.barcode}</dd></div>
             <div><dt>Status</dt><dd><span className={`products-status status-${detail.product.status}`}>{statusLabel(detail.product.status)}</span></dd></div>
             <div><dt>Dibuat Pada</dt><dd>{dateLabel(detail.product.createdAt)}</dd></div>

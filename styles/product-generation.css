@@ -1,0 +1,48 @@
+.product-generate-content { max-width: 1180px; }
+.product-generate-heading { margin-bottom: 27px; }
+.product-generate-heading > div > p { margin: 8px 0 0; color: #55584e; font-size: 15px; }
+.product-generate-panel { overflow: hidden; border: 1px solid #d7dacf; border-radius: 16px; background: #fff; box-shadow: 8px 8px 18px #d2d7d0, -5px -5px 14px #fff; }
+.product-generate-panel-header { display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #e5e7e1; padding: 23px 26px; }
+.product-generate-icon { display: grid; width: 48px; height: 48px; flex: 0 0 auto; place-items: center; border-radius: 14px; color: #fff; background: linear-gradient(140deg, #715ce2, #3787db); box-shadow: 4px 4px 9px #c9c5e8, -3px -3px 8px #fff; }
+.product-generate-icon svg { width: 22px; height: 22px; }
+.product-generate-panel-header h2 { margin: 5px 0; color: #20221b; font-size: 22px; }
+.product-generate-panel-header p { margin: 0; color: #55584e; font-size: 13px; }
+.product-generate-error { margin: 18px 26px 0; border: 1px solid #e4c5bd; padding: 12px 14px; color: #8b4032; background: #fff8f6; font-size: 14px; }
+.product-generate-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; padding: 27px 26px; }
+.product-generate-field { display: grid; align-content: start; gap: 8px; color: #383b32; font-size: 14px; font-weight: 700; }
+.product-generate-field select, .product-generate-field input { width: 100%; height: 48px; border: 1px solid #bfc4b8; border-radius: 10px; padding: 0 13px; color: #25271f; background: #fff; font: inherit; font-size: 14px; }
+.product-generate-field select:disabled { color: #72756a; background: #f2f3f0; cursor: not-allowed; }
+.product-generate-field select:focus-visible, .product-generate-field input:focus-visible { outline: 2px solid #5a48c8; outline-offset: 2px; }
+.product-generate-field small { color: #55584e; font-size: 12px; font-weight: 400; line-height: 1.5; }
+.product-generate-field small a { color: #4938b5; font-weight: 700; text-decoration: underline; }
+.product-generate-field .product-generate-field-error { color: #8b4032; }
+.product-generate-quantity { max-width: 320px; }
+.product-generate-actions { display: flex; grid-column: 1 / -1; justify-content: end; border-top: 1px solid #e5e7e1; padding-top: 20px; }
+.product-generate-submit, .product-generate-new, .product-generate-cancel { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; gap: 8px; border: 1px solid transparent; border-radius: 10px; padding: 0 17px; cursor: pointer; font: inherit; font-size: 14px; font-weight: 700; text-decoration: none; }
+.product-generate-submit { color: #fff; background: #5a48c8; box-shadow: 4px 4px 9px #c9c5e8, -3px -3px 8px #fff; }
+.product-generate-submit:hover { background: #4938b5; }
+.product-generate-submit:disabled { cursor: wait; opacity: .6; }
+.product-generate-submit svg { width: 17px; height: 17px; }
+.product-generate-new { border-color: #187d73; color: #fff; background: #168b7c; box-shadow: 4px 4px 9px #bedbd4, -3px -3px 8px #fff; }
+.product-generate-new:hover { background: #087366; }
+.product-generate-cancel { border-color: #bfc4b8; color: #36392f; background: #fff; }
+.product-generate-cancel:hover { background: #f1f2ee; }
+.product-generate-dialog { position: fixed; inset: 0; width: min(calc(100% - 32px), 560px); max-width: none; margin: auto; border: 1px solid #cdd1c8; border-radius: 16px; padding: 25px; color: #25271f; background: #fff; box-shadow: 0 18px 55px #20221b48; }
+.product-generate-dialog::backdrop { background: #20221b75; }
+.product-generate-dialog-header { display: flex; align-items: start; justify-content: space-between; gap: 15px; border-bottom: 1px solid #e5e7e1; padding-bottom: 17px; }
+.product-generate-dialog-header h2 { margin: 6px 0 0; color: #20221b; font-size: 23px; }
+.product-generate-close { display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid #cbd0c6; border-radius: 50%; color: #36392f; background: #fff; cursor: pointer; }
+.product-generate-close svg { width: 17px; height: 17px; }
+.product-generate-success-copy { margin: 19px 0 23px; color: #4e5147; font-size: 14px; line-height: 1.7; }
+.product-generate-success-copy strong { color: #20221b; }
+.product-generate-dialog-actions { display: flex; flex-wrap: wrap; justify-content: end; gap: 9px; border-top: 1px solid #e5e7e1; padding-top: 18px; }
+.product-generate-close:focus-visible, .product-generate-submit:focus-visible, .product-generate-new:focus-visible, .product-generate-cancel:focus-visible { outline: 2px solid #5a48c8; outline-offset: 3px; }
+@media (max-width: 760px) {
+  .product-generate-heading { margin-bottom: 18px; }
+  .product-generate-panel-header { align-items: start; padding: 19px 17px; }
+  .product-generate-form { grid-template-columns: 1fr; gap: 18px; padding: 20px 17px; }
+  .product-generate-actions { grid-column: auto; }
+  .product-generate-submit { width: 100%; }
+  .product-generate-dialog { padding: 19px; }
+  .product-generate-dialog-actions { display: grid; grid-template-columns: 1fr; }
+}

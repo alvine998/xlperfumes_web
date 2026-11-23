@@ -10,6 +10,7 @@ import {
   MapPin,
   Clipboard,
   Package,
+  PackagePlus,
   Warehouse,
   ShieldCheck,
   Store,
@@ -21,19 +22,43 @@ import {
 import { getApi } from "@/lib/api";
 import { isFeaturePermissions, type FeatureKey, type FeaturePermissions } from "@/lib/permissions";
 
-const NAV_ITEMS: { href: string; label: string; feature: FeatureKey; Icon: LucideIcon }[] = [
-  { href: "/main/dashboard", label: "Ringkasan", feature: "overview", Icon: LayoutDashboard },
-  { href: "/main/store-stock", label: "Stok Toko", feature: "inventory", Icon: Package },
-  { href: "/main/warehouse-stock", label: "Stok Gudang", feature: "inventory", Icon: Warehouse },
-  { href: "/main/variants", label: "Daftar Varian", feature: "inventory", Icon: Tags },
-  { href: "/main/products", label: "Daftar Produk", feature: "inventory", Icon: Clipboard },
-  { href: "/main/branches", label: "Daftar Cabang", feature: "stores", Icon: MapPin },
-  { href: "/main/zones", label: "Daftar Zona", feature: "stores", Icon: Layers },
-  { href: "/main/stores", label: "Daftar Toko", feature: "stores", Icon: Store },
-  { href: "/main/store-barcodes", label: "Cetak Barcode Toko", feature: "stores", Icon: Printer },
-  { href: "/main/users", label: "Pengguna", feature: "users", Icon: UsersRound },
-  { href: "/main/roles", label: "Akses Peran", feature: "users", Icon: ShieldCheck },
-  { href: "/main/activity-logs", label: "Log Aktivitas", feature: "activity", Icon: ClipboardList },
+const NAV_GROUPS: {
+  label: string;
+  items: { href: string; label: string; feature: FeatureKey; Icon: LucideIcon }[];
+}[] = [
+  {
+    label: "RINGKASAN",
+    items: [
+      { href: "/main/dashboard", label: "Ringkasan", feature: "overview", Icon: LayoutDashboard },
+    ],
+  },
+  {
+    label: "INVENTARIS",
+    items: [
+      { href: "/main/store-stock", label: "Stok Toko", feature: "inventory", Icon: Package },
+      { href: "/main/warehouse-stock", label: "Stok Gudang", feature: "inventory", Icon: Warehouse },
+      { href: "/main/variants", label: "Daftar Varian", feature: "inventory", Icon: Tags },
+      { href: "/main/products", label: "Daftar Produk", feature: "inventory", Icon: Clipboard },
+      { href: "/main/products/generate", label: "Generate Produk", feature: "inventory", Icon: PackagePlus },
+    ],
+  },
+  {
+    label: "JARINGAN TOKO",
+    items: [
+      { href: "/main/branches", label: "Daftar Cabang", feature: "stores", Icon: MapPin },
+      { href: "/main/zones", label: "Daftar Zona", feature: "stores", Icon: Layers },
+      { href: "/main/stores", label: "Daftar Toko", feature: "stores", Icon: Store },
+      { href: "/main/store-barcodes", label: "Cetak Barcode Toko", feature: "stores", Icon: Printer },
+    ],
+  },
+  {
+    label: "ADMINISTRASI",
+    items: [
+      { href: "/main/users", label: "Pengguna", feature: "users", Icon: UsersRound },
+      { href: "/main/roles", label: "Akses Peran", feature: "users", Icon: ShieldCheck },
+      { href: "/main/activity-logs", label: "Log Aktivitas", feature: "activity", Icon: ClipboardList },
+    ],
+  },
 ];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -69,20 +94,29 @@ function MainSidebarContent() {
         <span className="dashboard-brand-mark">XL</span>
         <span>PERFUMES</span>
       </Link>
-      <div className="sidebar-label">MANAJEMEN</div>
       <nav className="dashboard-nav" aria-label="Fitur">
-        {permissions ? NAV_ITEMS.filter(({ feature }) => permissions[feature]).map(({ href, label, Icon }) => {
-          const active = href === pathname;
+        {permissions ? NAV_GROUPS.map(({ label: groupLabel, items }) => {
+          const visibleItems = items.filter(({ feature }) => permissions[feature]);
+          if (visibleItems.length === 0) return null;
+
           return (
-            <Link
-              className={`dashboard-nav-link${active ? " is-active" : ""}`}
-              href={href}
-              aria-current={active ? "page" : undefined}
-              key={href}
-            >
-              <span className="nav-icon"><Icon aria-hidden="true" /></span>
-              {label}
-            </Link>
+            <div className="dashboard-nav-group" role="group" aria-label={groupLabel} key={groupLabel}>
+              <span className="dashboard-nav-group-label" aria-hidden="true">{groupLabel}</span>
+              {visibleItems.map(({ href, label, Icon }) => {
+                const active = href === pathname;
+                return (
+                  <Link
+                    className={`dashboard-nav-link${active ? " is-active" : ""}`}
+                    href={href}
+                    aria-current={active ? "page" : undefined}
+                    key={href}
+                  >
+                    <span className="nav-icon"><Icon aria-hidden="true" /></span>
+                    {label}
+                  </Link>
+                );
+              })}
+            </div>
           );
         }) : <SidebarLoadingStatus />}
       </nav>
@@ -97,7 +131,6 @@ function MainSidebarLoading() {
         <span className="dashboard-brand-mark">XL</span>
         <span>PERFUMES</span>
       </Link>
-      <div className="sidebar-label">MANAJEMEN</div>
       <nav className="dashboard-nav" aria-label="Fitur">
         <SidebarLoadingStatus />
       </nav>
