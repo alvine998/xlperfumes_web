@@ -2,7 +2,6 @@
 
 import {
   useEffect,
-  useMemo,
   useRef,
   useState,
   type FormEvent,
@@ -23,8 +22,11 @@ import toast from "react-hot-toast";
 import { DashboardFooter } from "@/components/layout/dashboard-footer";
 import { Modal } from "@/components/ui/modal";
 import { DataTable } from "@/components/ui/data-table";
+import { ApiPagination } from "@/components/ui/api-pagination";
+import { useDebounce } from "@/hooks/use-debounce";
 import { getApi, getApiError, api } from "@/lib/api";
 import { isUser, USER_ROLES, type User, type UserRole } from "@/lib/users";
+import { isApiPagination, type ApiPagination as ApiPaginationState } from "@/lib/pagination";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -66,55 +68,71 @@ function formatCreatedAt(value: string) {
 
 export function UsersManagement() {
   const [users, setUsers] = useState<User[]>([]);
+  const [pagination, setPagination] = useState<ApiPaginationState>({ page: 1, limit: 50, total: 0, totalPages: 0 });
+  const [pageSize, setPageSize] = useState(50);
+  const [page, setPage] = useState(1);
+  const [summary, setSummary] = useState({ totalUsers: 0, activeUsers: 0, adminUsers: 0 });
+  const [reloadKey, setReloadKey] = useState(0);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loadedRequestKey, setLoadedRequestKey] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState("");
+  const [requestError, setRequestError] = useState<{ key: string; message: string } | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const debouncedSearch = useDebounce(search);
+
+  const params = new URLSearchParams({ page: String(page), limit: String(pageSize) });
+  if (debouncedSearch.trim()) params.set("search", debouncedSearch.trim());
+  if (roleFilter !== "all") params.set("role", roleFilter);
+  if (statusFilter !== "all") params.set("isActive", String(statusFilter === "active"));
+  const requestQuery = params.toString();
+  const requestKey = `${requestQuery}|reload=${reloadKey}`;
+  const isLoading = loadedRequestKey !== requestKey;
+  const error = requestError?.key === requestKey ? requestError.message : "";
 
   useEffect(() => {
     let isCurrent = true;
-    getApi("/users")
+    getApi(`/users?${requestQuery}`)
       .then(({ data }) => {
         if (!isCurrent) return;
         const payload = data;
         if (
           !isRecord(payload) ||
           !Array.isArray(payload.users) ||
-          !payload.users.every(isUser)
+          !payload.users.every(isUser) ||
+          !isApiPagination(payload.pagination) ||
+          !isRecord(payload.summary) ||
+          typeof payload.summary.totalUsers !== "number" ||
+          typeof payload.summary.activeUsers !== "number" ||
+          typeof payload.summary.adminUsers !== "number"
         ) {
           throw new Error("The API returned an invalid user list.");
         }
         setUsers(payload.users);
+        setPagination(payload.pagination);
+        setPage(Math.min(page, Math.max(1, payload.pagination.totalPages)));
+        setRequestError(null);
+        setSummary({
+          totalUsers: payload.summary.totalUsers,
+          activeUsers: payload.summary.activeUsers,
+          adminUsers: payload.summary.adminUsers,
+        });
       })
       .catch((cause: unknown) => {
-        if (isCurrent) setError(getApiError(cause));
+        if (isCurrent) setRequestError({ key: requestKey, message: getApiError(cause) });
       })
       .finally(() => {
-        if (isCurrent) setIsLoading(false);
+        if (isCurrent) setLoadedRequestKey(requestKey);
       });
     return () => {
       isCurrent = false;
     };
-  }, []);
+  }, [requestQuery, requestKey, page]);
 
-  const activeCount = users.filter((user) => user.isActive).length;
-  const adminCount = users.filter((user) => user.role === "admin").length;
-  const filteredUsers = useMemo(() => {
-    const query = search.trim().toLocaleLowerCase("id-ID");
-    return users.filter((user) => {
-      const matchesQuery =
-        !query || user.username.toLocaleLowerCase("id-ID").includes(query);
-      const matchesRole = roleFilter === "all" || user.role === roleFilter;
-      const matchesStatus =
-        statusFilter === "all" ||
-        (statusFilter === "active" ? user.isActive : !user.isActive);
-      return matchesQuery && matchesRole && matchesStatus;
-    });
-  }, [users, search, roleFilter, statusFilter]);
+  const activeCount = summary.activeUsers;
+  const adminCount = summary.adminUsers;
 
   function openCreate() {
     setEditingUser(null);
@@ -131,10 +149,7 @@ export function UsersManagement() {
       const updatedUser = await requestUser(`/${user.id}`, "PATCH", {
         isActive: !user.isActive,
       });
-      if (updatedUser)
-        setUsers((current) =>
-          current.map((item) => (item.id === user.id ? updatedUser : item)),
-        );
+      if (updatedUser) setReloadKey((current) => current + 1);
     } catch (cause) {
       toast.error(
         cause instanceof Error
@@ -153,7 +168,7 @@ export function UsersManagement() {
       return;
     try {
       await requestUser(`/${user.id}`, "DELETE");
-      setUsers((current) => current.filter((item) => item.id !== user.id));
+      setReloadKey((current) => current + 1);
       toast.success("Akun pengguna dihapus.");
     } catch (cause) {
       toast.error(
@@ -182,13 +197,7 @@ export function UsersManagement() {
         editingUser ? "PATCH" : "POST",
         body,
       );
-      if (user) {
-        setUsers((current) =>
-          editingUser
-            ? current.map((item) => (item.id === user.id ? user : item))
-            : [user, ...current],
-        );
-      }
+      if (user) setReloadKey((current) => current + 1);
       form.reset();
       dialogRef.current?.close();
       toast.success(
@@ -229,7 +238,7 @@ export function UsersManagement() {
         <SummaryCard
           icon={<PeopleIcon />}
           label="Total pengguna"
-          value={users.length}
+          value={summary.totalUsers}
           note="Semua akun terdaftar"
         />
         <SummaryCard
@@ -256,7 +265,7 @@ export function UsersManagement() {
           <div>
             <span className="dashboard-eyebrow">DAFTAR AKUN</span>
             <h2 id="users-table-title">
-              Semua pengguna <span>{filteredUsers.length}</span>
+              Semua pengguna <span>{pagination.total}</span>
             </h2>
             <p>Kelola akses dan status akun pengguna.</p>
           </div>
@@ -267,7 +276,7 @@ export function UsersManagement() {
               <input
                 type="search"
                 value={search}
-                onChange={(event) => setSearch(event.target.value)}
+                onChange={(event) => { setPage(1); setSearch(event.target.value); }}
                 placeholder="Cari username"
               />
             </label>
@@ -275,7 +284,7 @@ export function UsersManagement() {
               <span className="sr-only">Filter berdasarkan peran</span>
               <select
                 value={roleFilter}
-                onChange={(event) => setRoleFilter(event.target.value)}
+                onChange={(event) => { setPage(1); setRoleFilter(event.target.value); }}
               >
                 <option value="all">Semua peran</option>
                 {USER_ROLES.map((role) => (
@@ -289,7 +298,7 @@ export function UsersManagement() {
               <span className="sr-only">Filter berdasarkan status</span>
               <select
                 value={statusFilter}
-                onChange={(event) => setStatusFilter(event.target.value)}
+                onChange={(event) => { setPage(1); setStatusFilter(event.target.value); }}
               >
                 <option value="all">Semua status</option>
                 <option value="active">Aktif</option>
@@ -387,7 +396,7 @@ export function UsersManagement() {
               ),
             },
           ]}
-          rows={filteredUsers}
+          rows={users}
           getRowKey={(user) => user.id}
           hasError={Boolean(error)}
           isLoading={isLoading}
@@ -398,22 +407,31 @@ export function UsersManagement() {
                 <Search aria-hidden="true" />
               </span>
               <strong>
-                {users.length
+                {pagination.total
                   ? "Tidak ada pengguna ditemukan"
                   : "Belum ada pengguna"}
               </strong>
               <span>
-                {users.length
+                {pagination.total
                   ? "Coba ubah kata kunci atau filter."
                   : "Tambahkan akun baru untuk memulai."}
               </span>
             </>
           }
         />
+        <ApiPagination
+          page={pagination.page}
+          limit={pageSize}
+          total={pagination.total}
+          totalPages={pagination.totalPages}
+          itemLabel="pengguna"
+          isLoading={isLoading}
+          onPageChange={setPage}
+          onLimitChange={(limit) => { setPage(1); setPageSize(limit); }}
+        />
         <footer className="users-table-footer">
           <span>
-            Menampilkan <strong>{filteredUsers.length}</strong> dari{" "}
-            <strong>{users.length}</strong> pengguna
+            Total hasil setelah filter: <strong>{pagination.total}</strong> pengguna
           </span>
           <span>
             XL Perfumes <i>·</i> Data akun

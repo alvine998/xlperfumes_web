@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Activity, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Activity, Search } from "lucide-react";
 import { DashboardFooter } from "@/components/layout/dashboard-footer";
 import { DataTable } from "@/components/ui/data-table";
+import { ApiPagination } from "@/components/ui/api-pagination";
+import { useDebounce } from "@/hooks/use-debounce";
 import { getApi, getApiError } from "@/lib/api";
+import { isApiPagination, type ApiPagination as ApiPaginationState } from "@/lib/pagination";
 
 type ActivityLog = {
   id: number;
@@ -22,6 +25,10 @@ const PAGE_SIZES = [50, 100, 200, 500] as const;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((item) => typeof item === "string");
 }
 
 function isActivityLog(value: unknown): value is ActivityLog {
@@ -59,6 +66,8 @@ function detailsLabel(details: unknown) {
 
 export function ActivityLogs() {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
+  const [pagination, setPagination] = useState<ApiPaginationState>({ page: 1, limit: 50, total: 0, totalPages: 0 });
+  const [filterOptions, setFilterOptions] = useState({ users: [] as string[], branches: [] as string[], actions: [] as string[] });
   const [search, setSearch] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -67,64 +76,52 @@ export function ActivityLogs() {
   const [actionFilter, setActionFilter] = useState("all");
   const [pageSize, setPageSize] = useState<(typeof PAGE_SIZES)[number]>(50);
   const [page, setPage] = useState(1);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [loadedRequestKey, setLoadedRequestKey] = useState<string | null>(null);
+  const [requestError, setRequestError] = useState<{ key: string; message: string } | null>(null);
+  const debouncedSearch = useDebounce(search);
+
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(pageSize),
+    includeOptions: "true",
+  });
+  if (debouncedSearch.trim()) params.set("search", debouncedSearch.trim());
+  if (startDate) params.set("startDate", startDate);
+  if (endDate) params.set("endDate", endDate);
+  if (userFilter !== "all") params.set("username", userFilter);
+  if (branchFilter !== "all") params.set("branch", branchFilter);
+  if (actionFilter !== "all") params.set("action", actionFilter);
+  const requestQuery = params.toString();
+  const requestKey = requestQuery;
+  const isLoading = loadedRequestKey !== requestKey;
+  const error = requestError?.key === requestKey ? requestError.message : "";
 
   useEffect(() => {
     let isCurrent = true;
-    getApi("/activity-logs?limit=500")
+    getApi(`/activity-logs?${requestQuery}`)
       .then(({ data }) => {
         if (!isCurrent) return;
-        if (!isRecord(data) || !Array.isArray(data.activityLogs) || !data.activityLogs.every(isActivityLog)) {
+        if (!isRecord(data) || !Array.isArray(data.activityLogs) || !data.activityLogs.every(isActivityLog) ||
+          !isApiPagination(data.pagination)) {
           throw new Error("API mengembalikan daftar aktivitas yang tidak valid.");
         }
         setLogs(data.activityLogs);
+        setPagination(data.pagination);
+        setPage(Math.min(page, Math.max(1, data.pagination.totalPages)));
+        setRequestError(null);
+        if (isRecord(data.filters) && isStringArray(data.filters.users) &&
+          isStringArray(data.filters.branches) && isStringArray(data.filters.actions)) {
+          setFilterOptions({ users: data.filters.users, branches: data.filters.branches, actions: data.filters.actions });
+        }
       })
       .catch((cause: unknown) => {
-        if (isCurrent) setError(getApiError(cause));
+        if (isCurrent) setRequestError({ key: requestKey, message: getApiError(cause) });
       })
       .finally(() => {
-        if (isCurrent) setIsLoading(false);
+        if (isCurrent) setLoadedRequestKey(requestKey);
       });
     return () => { isCurrent = false; };
-  }, []);
-
-  const users = useMemo(
-    () => [...new Set(logs.map((log) => log.username).filter((username): username is string => Boolean(username)))].sort((a, b) => a.localeCompare(b, "id")),
-    [logs],
-  );
-  const branches = useMemo(
-    () => [...new Set(logs.map((log) => getLogBranch(log)))].sort((a, b) => a.localeCompare(b, "id")),
-    [logs],
-  );
-  const actions = useMemo(
-    () => [...new Set(logs.map((log) => log.action))].sort((a, b) => a.localeCompare(b, "id")),
-    [logs],
-  );
-
-  const filteredLogs = useMemo(() => {
-    const query = search.trim().toLocaleLowerCase("id-ID");
-    return logs.filter((log) => {
-      const logDate = dateKey(log.createdAt);
-      const matchesSearch = !query || [
-        log.username ?? "", log.action, log.entityType, log.entityId ?? "",
-        detailsLabel(log.details), log.ipAddress ?? "",
-      ].join(" ").toLocaleLowerCase("id-ID").includes(query);
-      return matchesSearch &&
-        (!startDate || (Boolean(logDate) && logDate >= startDate)) &&
-        (!endDate || (Boolean(logDate) && logDate <= endDate)) &&
-        (userFilter === "all" || log.username === userFilter) &&
-        (branchFilter === "all" || getLogBranch(log) === branchFilter) &&
-        (actionFilter === "all" || log.action === actionFilter);
-    });
-  }, [logs, search, startDate, endDate, userFilter, branchFilter, actionFilter]);
-
-  const pageCount = Math.max(1, Math.ceil(filteredLogs.length / pageSize));
-  const currentPage = Math.min(page, pageCount);
-  const firstRowIndex = (currentPage - 1) * pageSize;
-  const pageLogs = filteredLogs.slice(firstRowIndex, firstRowIndex + pageSize);
-  const rangeStart = filteredLogs.length ? firstRowIndex + 1 : 0;
-  const rangeEnd = Math.min(firstRowIndex + pageSize, filteredLogs.length);
+  }, [requestQuery, requestKey, page]);
 
   function clearFilters() {
     setPage(1);
@@ -144,15 +141,15 @@ export function ActivityLogs() {
           <h1 id="activity-title">Log Aktivitas</h1>
           <p>Riwayat perubahan dan akses terbaru di XL Perfumes.</p>
         </div>
-        <div className="activity-count"><Activity aria-hidden="true" />{logs.length} aktivitas dimuat</div>
+        <div className="activity-count"><Activity aria-hidden="true" />{pagination.total} aktivitas</div>
       </section>
 
       <section className="activity-table-section" aria-labelledby="activity-table-title">
         <header className="activity-table-header">
           <div>
             <span className="dashboard-eyebrow">CATATAN TERBARU</span>
-            <h2 id="activity-table-title">Semua aktivitas <span>{filteredLogs.length}</span></h2>
-            <p>Menampilkan hingga 500 catatan terbaru.</p>
+            <h2 id="activity-table-title">Semua aktivitas <span>{pagination.total}</span></h2>
+            <p>Filter, pencarian, dan halaman diproses oleh API.</p>
           </div>
         </header>
 
@@ -169,21 +166,21 @@ export function ActivityLogs() {
             <span>Pengguna</span>
             <select value={userFilter} onChange={(event) => { setPage(1); setUserFilter(event.target.value); }}>
               <option value="all">Semua pengguna</option>
-              {users.map((username) => <option key={username} value={username}>{username}</option>)}
+              {filterOptions.users.map((username) => <option key={username} value={username}>{username}</option>)}
             </select>
           </label>
           <label className="activity-filter-field">
             <span>Cabang</span>
             <select value={branchFilter} onChange={(event) => { setPage(1); setBranchFilter(event.target.value); }}>
               <option value="all">Semua cabang</option>
-              {branches.map((branch) => <option key={branch} value={branch}>{branch}</option>)}
+              {filterOptions.branches.map((branch) => <option key={branch} value={branch}>{branch}</option>)}
             </select>
           </label>
           <label className="activity-filter-field">
             <span>Aksi</span>
             <select value={actionFilter} onChange={(event) => { setPage(1); setActionFilter(event.target.value); }}>
               <option value="all">Semua aksi</option>
-              {actions.map((action) => <option key={action} value={action}>{label(action)}</option>)}
+              {filterOptions.actions.map((action) => <option key={action} value={action}>{label(action)}</option>)}
             </select>
           </label>
           <label className="activity-search">
@@ -208,75 +205,29 @@ export function ActivityLogs() {
             { id: "details", header: "DETAIL", className: "activity-details", renderCell: (log) => detailsLabel(log.details) },
             { id: "ip", header: "ALAMAT IP", className: "activity-ip", renderCell: (log) => log.ipAddress || "—" },
           ]}
-          rows={pageLogs}
+          rows={logs}
           getRowKey={(log) => log.id}
           isLoading={isLoading}
           hasError={Boolean(error)}
           loadingContent="Memuat log aktivitas…"
-          emptyContent={<><span className="activity-empty-icon"><Activity aria-hidden="true" /></span><strong>{logs.length ? "Aktivitas tidak ditemukan" : "Belum ada aktivitas"}</strong><span>{logs.length ? "Ubah kata kunci pencarian." : "Catatan aktivitas akan muncul di sini."}</span></>}
+          emptyContent={<><span className="activity-empty-icon"><Activity aria-hidden="true" /></span><strong>{pagination.total ? "Aktivitas tidak ditemukan" : "Belum ada aktivitas"}</strong><span>{pagination.total ? "Ubah kata kunci pencarian." : "Catatan aktivitas akan muncul di sini."}</span></>}
         />
-        <footer className="activity-table-footer">
-          <span className="activity-page-summary">
-            Menampilkan <strong>{rangeStart}–{rangeEnd}</strong> dari <strong>{filteredLogs.length}</strong> aktivitas
-          </span>
-          <div className="activity-pagination">
-            <label className="activity-page-size">
-              Baris per halaman
-              <select
-                aria-label="Baris per halaman"
-                value={pageSize}
-                onChange={(event) => {
-                  const nextPageSize = PAGE_SIZES.find((size) => size === Number(event.target.value));
-                  if (nextPageSize) setPageSize(nextPageSize);
-                  setPage(1);
-                }}
-              >
-                {PAGE_SIZES.map((size) => <option key={size} value={size}>{size}</option>)}
-              </select>
-            </label>
-            <nav className="activity-page-nav" aria-label="Navigasi halaman log aktivitas">
-              <span>Halaman {currentPage} dari {pageCount}</span>
-              <button
-                type="button"
-                aria-label="Halaman sebelumnya"
-                onClick={() => setPage((current) => Math.max(1, current - 1))}
-                disabled={currentPage <= 1}
-              >
-                <ChevronLeft aria-hidden="true" />
-              </button>
-              <button
-                type="button"
-                aria-label="Halaman berikutnya"
-                onClick={() => setPage((current) => Math.min(pageCount, current + 1))}
-                disabled={currentPage >= pageCount}
-              >
-                <ChevronRight aria-hidden="true" />
-              </button>
-            </nav>
-          </div>
-        </footer>
+        <ApiPagination
+          page={pagination.page}
+          limit={pageSize}
+          total={pagination.total}
+          totalPages={pagination.totalPages}
+          itemLabel="aktivitas"
+          pageSizes={PAGE_SIZES}
+          isLoading={isLoading}
+          onPageChange={setPage}
+          onLimitChange={(limit) => {
+            const nextPageSize = PAGE_SIZES.find((size) => size === limit);
+            if (nextPageSize) { setPage(1); setPageSize(nextPageSize); }
+          }}
+        />
       </section>
       <DashboardFooter section="LOG AKTIVITAS" />
     </div>
   );
-}
-
-function getLogBranch(log: ActivityLog) {
-  if (isRecord(log.details) && typeof log.details.branch === "string" && log.details.branch.trim()) {
-    return log.details.branch;
-  }
-  return "Tanpa cabang";
-}
-
-function dateKey(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Jakarta",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(date);
-  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((item) => item.type === type)?.value ?? "";
-  return `${part("year")}-${part("month")}-${part("day")}`;
 }

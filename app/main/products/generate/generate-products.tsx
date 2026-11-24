@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PackagePlus, X } from "lucide-react";
 import toast from "react-hot-toast";
-import { api, getApi, getApiError } from "@/lib/api";
+import { api, getApiError } from "@/lib/api";
+import { getAllApiPages } from "@/lib/pagination";
 
 type Branch = { id: number; name: string };
 type Variant = { id: number; name: string; branchId: number };
@@ -57,12 +58,9 @@ export function GenerateProducts() {
 
   useEffect(() => {
     let active = true;
-    getApi("/products/branches")
-      .then(({ data }) => {
-        if (!isRecord(data) || !Array.isArray(data.branches) || !data.branches.every(isBranch)) {
-          throw new Error("Data cabang dari API tidak valid.");
-        }
-        if (active) setBranches(data.branches);
+    getAllApiPages("/products/branches", "branches", isBranch)
+      .then((rows) => {
+        if (active) setBranches(rows);
       })
       .catch((cause: unknown) => {
         if (active) setBranchesError(getApiError(cause));
@@ -79,13 +77,10 @@ export function GenerateProducts() {
 
     let active = true;
     const params = new URLSearchParams({ branchId: String(selectedBranchId) });
-    getApi("/variants?" + params.toString())
-      .then(({ data }) => {
-        if (!isRecord(data) || !Array.isArray(data.variants) || !data.variants.every(isVariant)) {
-          throw new Error("Data varian dari API tidak valid.");
-        }
+    getAllApiPages("/variants?" + params.toString(), "variants", isVariant)
+      .then((variants) => {
         if (active) {
-          setVariantResult({ branchId: selectedBranchId, variants: data.variants, error: "" });
+          setVariantResult({ branchId: selectedBranchId, variants, error: "" });
         }
       })
       .catch((cause: unknown) => {

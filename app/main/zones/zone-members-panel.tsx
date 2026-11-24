@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Plus, Search, Trash2, X } from "lucide-react";
 import toast from "react-hot-toast";
-import { api, getApi } from "@/lib/api";
+import { useDebounce } from "@/hooks/use-debounce";
+import { api } from "@/lib/api";
+import { getAllApiPages } from "@/lib/pagination";
 import {
   isZoneUser,
   type Zone,
@@ -34,23 +36,13 @@ export function ZoneMembersPanel({
   const [selectedUserIds, setSelectedUserIds] = useState<number[]>([]);
   const [error, setError] = useState("");
   const addMemberDialogRef = useRef<HTMLDialogElement>(null);
+  const debouncedSearchTerm = useDebounce(searchTerm);
 
   useEffect(() => {
     let isCurrent = true;
-    getApi(`/zones/${zone.id}/users`)
-      .then(({ data }) => {
+    getAllApiPages(`/zones/${zone.id}/users`, "users", isZoneUser)
+      .then((users) => {
         if (!isCurrent) return;
-        if (!isRecord(data) || !Array.isArray(data.users)) {
-          throw new Error(
-            "API mengembalikan daftar anggota zona yang tidak valid.",
-          );
-        }
-        const users = data.users.filter(isZoneUser);
-        if (users.length !== data.users.length) {
-          throw new Error(
-            "API mengembalikan daftar anggota zona yang tidak valid.",
-          );
-        }
         setZoneUsers(users);
       })
       .catch((cause: unknown) => {
@@ -79,7 +71,7 @@ export function ZoneMembersPanel({
   const availableCollectors = collectors.filter(
     ({ id }) => !assignedIds.has(id),
   );
-  const query = searchTerm.trim().toLocaleLowerCase();
+  const query = debouncedSearchTerm.trim().toLocaleLowerCase();
   const filteredCollectors = availableCollectors.filter(({ username }) =>
     username.toLocaleLowerCase().includes(query),
   );

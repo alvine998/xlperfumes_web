@@ -70,7 +70,7 @@ export function WarehouseMovementForm({ direction }: { direction: Direction }) {
     }
     setAdding(true);
     try {
-      const { data } = await getApi(`/products?search=${encodeURIComponent(code)}`);
+      const { data } = await getApi(`/products?search=${encodeURIComponent(code)}&page=1&limit=10`);
       if (!isRecord(data) || !Array.isArray(data.products) || !data.products.every(isProduct)) {
         throw new Error("Data produk dari API tidak valid.");
       }

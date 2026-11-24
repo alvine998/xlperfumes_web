@@ -6,6 +6,7 @@ import { ArrowLeft, Route, Store as StoreIcon, UsersRound } from "lucide-react";
 import toast from "react-hot-toast";
 import { DashboardFooter } from "@/components/layout/dashboard-footer";
 import { api, getApi, getApiError } from "@/lib/api";
+import { getAllApiPages, isApiPagination } from "@/lib/pagination";
 import { isStore, type Store } from "@/lib/stores";
 import { isZone, isZoneCollector, type Zone, type ZoneCollector } from "@/lib/zones";
 import { ZoneMembersPanel } from "./zone-members-panel";
@@ -42,6 +43,27 @@ function parseZoneStoreData(value: unknown) {
   };
 }
 
+async function getAllZoneStores(zoneId: number) {
+  const stores: Store[] = [];
+  const availableStores: Store[] = [];
+  let zone: Zone | null = null;
+  let totalPages = 1;
+  for (let page = 1; page <= totalPages; page += 1) {
+    const { data } = await getApi(`/zones/${zoneId}?page=${page}&limit=100`);
+    const pageData = parseZoneStoreData(data);
+    if (!isRecord(data) || !isApiPagination(data.storesPagination) ||
+      !isApiPagination(data.availableStoresPagination)) {
+      throw new Error("API mengembalikan paginasi toko zona yang tidak valid.");
+    }
+    zone = pageData.zone;
+    stores.push(...pageData.stores);
+    availableStores.push(...pageData.availableStores);
+    totalPages = Math.max(data.storesPagination.totalPages, data.availableStoresPagination.totalPages);
+  }
+  if (!zone) throw new Error("Data zona tidak ditemukan.");
+  return { zone, stores, availableStores };
+}
+
 type ZoneDetailProps = {
   zoneId: number;
 };
@@ -62,25 +84,16 @@ export function ZoneDetail({ zoneId }: ZoneDetailProps) {
   useEffect(() => {
     let isCurrent = true;
     Promise.all([
-      getApi(`/zones/${zoneId}`),
-      getApi("/zones/collectors"),
+      getAllZoneStores(zoneId),
+      getAllApiPages("/zones/collectors", "users", isZoneCollector),
     ])
-      .then(([zoneResponse, collectorsResponse]) => {
+      .then(([zoneData, collectorRows]) => {
         if (!isCurrent) return;
-        const zoneData = parseZoneStoreData(zoneResponse.data);
-        const collectorsPayload = collectorsResponse.data;
-        if (
-          !isRecord(collectorsPayload) ||
-          !Array.isArray(collectorsPayload.users) ||
-          !collectorsPayload.users.every(isZoneCollector)
-        ) {
-          throw new Error("API mengembalikan daftar pengguna collecting yang tidak valid.");
-        }
         setZone(zoneData.zone);
         setStores(zoneData.stores);
         setAvailableStores(zoneData.availableStores);
         setSavedOrderIds(zoneData.stores.map(({ id }) => id));
-        setCollectors(collectorsPayload.users);
+        setCollectors(collectorRows);
       })
       .catch((cause: unknown) => {
         if (isCurrent) {
@@ -128,8 +141,7 @@ export function ZoneDetail({ zoneId }: ZoneDetailProps) {
     setIsSavingMembership(true);
     try {
       await api.post(`/zones/${zoneId}/stores`, { storeIds });
-      const { data } = await getApi(`/zones/${zoneId}`);
-      const zoneData = parseZoneStoreData(data);
+      const zoneData = await getAllZoneStores(zoneId);
       setZone(zoneData.zone);
       setStores(zoneData.stores);
       setAvailableStores(zoneData.availableStores);
@@ -146,8 +158,7 @@ export function ZoneDetail({ zoneId }: ZoneDetailProps) {
     setIsSavingMembership(true);
     try {
       await api.delete(`/zones/${zoneId}/stores/${storeId}`);
-      const { data } = await getApi(`/zones/${zoneId}`);
-      const zoneData = parseZoneStoreData(data);
+      const zoneData = await getAllZoneStores(zoneId);
       setZone(zoneData.zone);
       setStores(zoneData.stores);
       setAvailableStores(zoneData.availableStores);

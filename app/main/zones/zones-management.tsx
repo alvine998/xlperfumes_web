@@ -1,14 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { ArrowRight, Layers, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { DashboardFooter } from "@/components/layout/dashboard-footer";
 import { DataTable } from "@/components/ui/data-table";
+import { ApiPagination } from "@/components/ui/api-pagination";
 import { Modal } from "@/components/ui/modal";
+import { useDebounce } from "@/hooks/use-debounce";
 import { api, getApi, getApiError } from "@/lib/api";
 import { isBranch, type Branch } from "@/lib/branches";
+import { getAllApiPages, isApiPagination, type ApiPagination as ApiPaginationState } from "@/lib/pagination";
 import {
   isZone,
   isZoneCollector,
@@ -49,56 +52,67 @@ export function ZonesManagement() {
   const [zones, setZones] = useState<Zone[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [collectors, setCollectors] = useState<ZoneCollector[]>([]);
+  const [pagination, setPagination] = useState<ApiPaginationState>({ page: 1, limit: 50, total: 0, totalPages: 0 });
+  const [pageSize, setPageSize] = useState(50);
+  const [page, setPage] = useState(1);
+  const [reloadKey, setReloadKey] = useState(0);
   const [search, setSearch] = useState("");
   const [editingZone, setEditingZone] = useState<Zone | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loadedRequestKey, setLoadedRequestKey] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState("");
+  const [requestError, setRequestError] = useState<{ key: string; message: string } | null>(null);
+  const [lookupError, setLookupError] = useState("");
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const debouncedSearch = useDebounce(search);
+
+  const params = new URLSearchParams({ page: String(page), limit: String(pageSize) });
+  if (debouncedSearch.trim()) params.set("search", debouncedSearch.trim());
+  const requestQuery = params.toString();
+  const requestKey = `${requestQuery}|reload=${reloadKey}`;
+  const isLoading = loadedRequestKey !== requestKey;
+  const error = (requestError?.key === requestKey ? requestError.message : "") || lookupError;
 
   useEffect(() => {
     let isCurrent = true;
-    Promise.all([getApi("/zones"), getApi("/branches"), getApi("/zones/collectors")])
-      .then(([zonesResponse, branchesResponse, collectorsResponse]) => {
+    Promise.all([
+      getAllApiPages("/branches", "branches", isBranch),
+      getAllApiPages("/zones/collectors", "users", isZoneCollector),
+    ])
+      .then(([branchRows, collectorRows]) => {
         if (!isCurrent) return;
-        const zonePayload = zonesResponse.data;
-        const branchPayload = branchesResponse.data;
-        const collectorsPayload = collectorsResponse.data;
-        if (!isRecord(zonePayload) || !Array.isArray(zonePayload.zones) ||
-          !zonePayload.zones.every(isZone)) {
-          throw new Error("API mengembalikan daftar zona yang tidak valid.");
-        }
-        if (!isRecord(branchPayload) || !Array.isArray(branchPayload.branches) ||
-          !branchPayload.branches.every(isBranch)) {
-          throw new Error("API mengembalikan daftar cabang yang tidak valid.");
-        }
-        if (!isRecord(collectorsPayload) || !Array.isArray(collectorsPayload.users) ||
-          !collectorsPayload.users.every(isZoneCollector)) {
-          throw new Error("API mengembalikan daftar pengguna collecting yang tidak valid.");
-        }
-        setZones(zonePayload.zones);
-        setBranches(branchPayload.branches);
-        setCollectors(collectorsPayload.users);
+        setBranches(branchRows);
+        setCollectors(collectorRows);
       })
       .catch((cause: unknown) => {
-        if (isCurrent) setError(getApiError(cause));
+        if (isCurrent) setLookupError(getApiError(cause));
+      });
+    return () => { isCurrent = false; };
+  }, []);
+
+  useEffect(() => {
+    let isCurrent = true;
+    getApi(`/zones?${requestQuery}`)
+      .then(({ data: zonePayload }) => {
+        if (!isCurrent) return;
+        if (!isRecord(zonePayload) || !Array.isArray(zonePayload.zones) ||
+          !zonePayload.zones.every(isZone) || !isApiPagination(zonePayload.pagination)) {
+          throw new Error("API mengembalikan daftar zona yang tidak valid.");
+        }
+        setZones(zonePayload.zones);
+        setPagination(zonePayload.pagination);
+        setPage(Math.min(page, Math.max(1, zonePayload.pagination.totalPages)));
+        setRequestError(null);
+      })
+      .catch((cause: unknown) => {
+        if (isCurrent) setRequestError({ key: requestKey, message: getApiError(cause) });
       })
       .finally(() => {
-        if (isCurrent) setIsLoading(false);
+        if (isCurrent) setLoadedRequestKey(requestKey);
       });
     return () => {
       isCurrent = false;
     };
-  }, []);
-
-  const filteredZones = useMemo(() => {
-    const query = search.trim().toLocaleLowerCase("id-ID");
-    return zones.filter((zone) =>
-      [zone.name, zone.branch, zone.createdBy ?? ""].some((value) =>
-        value.toLocaleLowerCase("id-ID").includes(query),
-      ),
-    );
-  }, [zones, search]);
+  }, [requestQuery, requestKey, page]);
 
   function openCreate() {
     setEditingZone(null);
@@ -128,13 +142,7 @@ export function ZonesManagement() {
         editingZone ? "PATCH" : "POST",
         body,
       );
-      if (zone) {
-        setZones((current) =>
-          editingZone
-            ? current.map((item) => item.id === zone.id ? zone : item)
-            : [zone, ...current],
-        );
-      }
+      if (zone) setReloadKey((current) => current + 1);
       dialogRef.current?.close();
       toast.success(
         editingZone ? "Perubahan zona tersimpan." : "Zona berhasil ditambahkan.",
@@ -158,7 +166,7 @@ export function ZonesManagement() {
     }
     try {
       await requestZone(`/${zone.id}`, "DELETE");
-      setZones((current) => current.filter((item) => item.id !== zone.id));
+      setReloadKey((current) => current + 1);
       toast.success("Zona berhasil dihapus.");
     } catch (cause) {
       toast.error(
@@ -193,7 +201,7 @@ export function ZonesManagement() {
           <div>
             <span className="dashboard-eyebrow">DATA OPERASIONAL</span>
             <h2 id="zones-table-title">
-              Semua zona <span>{filteredZones.length}</span>
+              Semua zona <span>{pagination.total}</span>
             </h2>
             <p>Zona yang digunakan oleh toko tidak dapat diubah atau dihapus.</p>
           </div>
@@ -203,7 +211,7 @@ export function ZonesManagement() {
             <input
               type="search"
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              onChange={(event) => { setPage(1); setSearch(event.target.value); }}
               placeholder="Cari zona"
             />
           </label>
@@ -293,7 +301,7 @@ export function ZonesManagement() {
               },
             },
           ]}
-          rows={filteredZones}
+          rows={zones}
           getRowKey={(zone) => zone.id}
           hasError={Boolean(error)}
           isLoading={isLoading}
@@ -302,20 +310,29 @@ export function ZonesManagement() {
             <>
               <span className="zones-empty-icon"><Layers aria-hidden="true" /></span>
               <strong>
-                {zones.length ? "Tidak ada zona ditemukan" : "Belum ada zona"}
+                {search ? "Tidak ada zona ditemukan" : "Belum ada zona"}
               </strong>
               <span>
-                {zones.length
+                {search
                   ? "Coba ubah kata kunci pencarian."
                   : "Tambahkan zona untuk mulai mengelola area operasional."}
               </span>
             </>
           }
         />
+        <ApiPagination
+          page={pagination.page}
+          limit={pageSize}
+          total={pagination.total}
+          totalPages={pagination.totalPages}
+          itemLabel="zona"
+          isLoading={isLoading}
+          onPageChange={setPage}
+          onLimitChange={(limit) => { setPage(1); setPageSize(limit); }}
+        />
         <footer className="zones-table-footer">
           <span>
-            Menampilkan <strong>{filteredZones.length}</strong> dari{" "}
-            <strong>{zones.length}</strong> zona
+            Halaman {pagination.page} dari {Math.max(1, pagination.totalPages)}
           </span>
           <span>XL Perfumes <i>·</i> Daftar zona</span>
         </footer>

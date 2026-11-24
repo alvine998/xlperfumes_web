@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowDownToLine, ArrowUpFromLine, ChevronDown, Eye, Package, X } from "lucide-react";
-import { getApi, getApiError } from "@/lib/api";
+import { getApiError } from "@/lib/api";
+import { getAllApiPages } from "@/lib/pagination";
 
 type WarehouseProduct = {
   id: number;
@@ -44,30 +45,31 @@ export function WarehouseStockManagement() {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [branchId, setBranchId] = useState("");
   const [selected, setSelected] = useState<WarehouseRow | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [loadedBranchId, setLoadedBranchId] = useState<string | null>(null);
+  const [requestError, setRequestError] = useState<{ branchId: string; message: string } | null>(null);
+  const loading = loadedBranchId !== branchId;
+  const error = requestError?.branchId === branchId ? requestError.message : "";
 
   useEffect(() => {
     let active = true;
-    Promise.all([getApi("/products?status=di_gudang"), getApi("/products/branches")])
-      .then(([productsResponse, branchesResponse]) => {
-        const productData: unknown = productsResponse.data;
-        const branchData: unknown = branchesResponse.data;
-        if (!isRecord(productData) || !Array.isArray(productData.products) || !productData.products.every(isProduct)) {
-          throw new Error("Data stok gudang dari API tidak valid.");
-        }
-        if (!isRecord(branchData) || !Array.isArray(branchData.branches) || !branchData.branches.every(isBranch)) {
-          throw new Error("Data cabang dari API tidak valid.");
-        }
+    const productPath = branchId
+      ? `/products?status=di_gudang&branchId=${encodeURIComponent(branchId)}`
+      : "/products?status=di_gudang";
+    Promise.all([
+      getAllApiPages(productPath, "products", isProduct),
+      getAllApiPages("/products/branches", "branches", isBranch),
+    ])
+      .then(([productRows, branchRows]) => {
         if (active) {
-          setProducts(productData.products);
-          setBranches(branchData.branches);
+          setProducts(productRows);
+          setBranches(branchRows);
+          setRequestError(null);
         }
       })
-      .catch((cause: unknown) => { if (active) setError(getApiError(cause)); })
-      .finally(() => { if (active) setLoading(false); });
+      .catch((cause: unknown) => { if (active) setRequestError({ branchId, message: getApiError(cause) }); })
+      .finally(() => { if (active) setLoadedBranchId(branchId); });
     return () => { active = false; };
-  }, []);
+  }, [branchId]);
 
   const rows = useMemo(() => {
     const grouped = new Map<string, WarehouseRow>();
@@ -85,9 +87,8 @@ export function WarehouseStockManagement() {
       grouped.set(key, row);
     }
     return [...grouped.values()]
-      .filter((row) => !branchId || String(row.branchId) === branchId)
       .sort((a, b) => a.name.localeCompare(b.name, "id-ID") || a.branch.localeCompare(b.branch, "id-ID"));
-  }, [products, branchId]);
+  }, [products]);
 
   const totalUnits = rows.reduce((sum, row) => sum + row.products.length, 0);
 

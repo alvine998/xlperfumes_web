@@ -5,7 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ChevronDown, Package, Save } from "lucide-react";
 import toast from "react-hot-toast";
-import { api, getApi, getApiError } from "@/lib/api";
+import { api, getApiError } from "@/lib/api";
+import { getAllApiPages } from "@/lib/pagination";
 
 type StockRow = {
   id: string;
@@ -61,16 +62,9 @@ export function AddStoreStock() {
 
   useEffect(() => {
     let current = true;
-    getApi("/store-stock")
-      .then(({ data }) => {
-        if (
-          !isRecord(data) ||
-          !Array.isArray(data.stocks) ||
-          !data.stocks.every(isStock)
-        ) {
-          throw new Error("Data stok dari API tidak valid.");
-        }
-        if (current) setRows(data.stocks);
+    getAllApiPages("/store-stock", "stocks", isStock)
+      .then((stocks) => {
+        if (current) setRows(stocks);
       })
       .catch((cause: unknown) => {
         if (current) setError(getApiError(cause));

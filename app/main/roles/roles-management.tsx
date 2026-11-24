@@ -5,6 +5,7 @@ import { Check, RotateCcw, Save, ShieldCheck } from "lucide-react";
 import toast from "react-hot-toast";
 import { api, getApi, getApiError } from "@/lib/api";
 import { USER_ROLES, type UserRole } from "@/lib/users";
+import { isApiPagination } from "@/lib/pagination";
 
 const FEATURES = [
   { key: "overview", label: "Ringkasan", description: "Statistik operasional dan dashboard" },
@@ -56,10 +57,11 @@ export function RolesManagement() {
 
   useEffect(() => {
     let isCurrent = true;
-    getApi("/roles")
+    getApi("/roles?page=1&limit=100")
       .then(({ data }) => {
         if (!isCurrent) return;
-        if (!isRecord(data) || !isPermissions(data.permissions)) {
+        if (!isRecord(data) || !Array.isArray(data.roles) || !isApiPagination(data.pagination) ||
+          !isPermissions(data.permissions)) {
           throw new Error("The API returned an invalid permissions matrix.");
         }
         setPermissions(data.permissions);

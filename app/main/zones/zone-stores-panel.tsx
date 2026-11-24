@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useDebounce } from "@/hooks/use-debounce";
 import {
   ArrowDown,
   ArrowUp,
@@ -43,6 +44,7 @@ export function ZoneStoresPanel({
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStoreIds, setSelectedStoreIds] = useState<number[]>([]);
   const addStoreDialogRef = useRef<HTMLDialogElement>(null);
+  const debouncedSearchTerm = useDebounce(searchTerm);
 
   useEffect(() => {
     const dialog = addStoreDialogRef.current;
@@ -50,11 +52,11 @@ export function ZoneStoresPanel({
   }, [isAddDialogOpen]);
 
   const filteredAvailableStores = useMemo(() => {
-    const query = searchTerm.trim().toLocaleLowerCase();
+    const query = debouncedSearchTerm.trim().toLocaleLowerCase();
     return availableStores.filter((store) =>
       store.name.toLocaleLowerCase().includes(query),
     );
-  }, [availableStores, searchTerm]);
+  }, [availableStores, debouncedSearchTerm]);
 
   function closeAddDialog() {
     const dialog = addStoreDialogRef.current;

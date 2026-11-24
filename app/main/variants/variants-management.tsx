@@ -1,9 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Package, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import toast from "react-hot-toast";
+import { useDebounce } from "@/hooks/use-debounce";
 import { api, getApi, getApiError } from "@/lib/api";
+import { ApiPagination } from "@/components/ui/api-pagination";
+import { getAllApiPages, isApiPagination, type ApiPagination as ApiPaginationState } from "@/lib/pagination";
 
 type Variant = {
   id: number;
@@ -52,47 +55,59 @@ const rupiah = new Intl.NumberFormat("id-ID", {
 export function VariantsManagement() {
   const [variants, setVariants] = useState<Variant[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
+  const [pagination, setPagination] = useState<ApiPaginationState>({ page: 1, limit: 50, total: 0, totalPages: 0 });
+  const [pageSize, setPageSize] = useState(50);
+  const [page, setPage] = useState(1);
+  const [reloadKey, setReloadKey] = useState(0);
   const [query, setQuery] = useState("");
   const [editingVariant, setEditingVariant] = useState<Variant | null>(null);
   const [quantityInput, setQuantityInput] = useState("");
   const [unitPriceInput, setUnitPriceInput] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loadedRequestKey, setLoadedRequestKey] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
+  const [requestError, setRequestError] = useState<{ key: string; message: string } | null>(null);
+  const [lookupError, setLookupError] = useState("");
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const debouncedQuery = useDebounce(query);
+
+  const params = new URLSearchParams({ page: String(page), limit: String(pageSize) });
+  if (debouncedQuery.trim()) params.set("search", debouncedQuery.trim());
+  const requestQuery = params.toString();
+  const requestKey = `${requestQuery}|reload=${reloadKey}`;
+  const loading = loadedRequestKey !== requestKey;
+  const error = (requestError?.key === requestKey ? requestError.message : "") || lookupError;
 
   useEffect(() => {
     let active = true;
-    Promise.all([getApi("/variants"), getApi("/products/branches")])
-      .then(([variantsResponse, branchesResponse]) => {
-        const variantsData: unknown = variantsResponse.data;
-        const branchesData: unknown = branchesResponse.data;
-        if (!isRecord(variantsData) || !Array.isArray(variantsData.variants) || !variantsData.variants.every(isVariant)) {
-          throw new Error("Data varian dari API tidak valid.");
-        }
-        if (!isRecord(branchesData) || !Array.isArray(branchesData.branches) || !branchesData.branches.every(isBranch)) {
-          throw new Error("Data cabang dari API tidak valid.");
-        }
-        if (active) {
-          setVariants(variantsData.variants);
-          setBranches(branchesData.branches);
-        }
-      })
-      .catch((cause: unknown) => {
-        if (active) setError(getApiError(cause));
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
+    getAllApiPages("/products/branches", "branches", isBranch)
+      .then((rows) => { if (active) setBranches(rows); })
+      .catch((cause: unknown) => { if (active) setLookupError(getApiError(cause)); });
     return () => { active = false; };
   }, []);
 
-  const filteredVariants = useMemo(() => {
-    const normalizedQuery = query.trim().toLocaleLowerCase("id-ID");
-    return variants.filter((variant) =>
-      variant.name.toLocaleLowerCase("id-ID").includes(normalizedQuery),
-    );
-  }, [variants, query]);
+  useEffect(() => {
+    let active = true;
+    getApi(`/variants?${requestQuery}`)
+      .then(({ data: variantsData }) => {
+        if (!isRecord(variantsData) || !Array.isArray(variantsData.variants) ||
+          !variantsData.variants.every(isVariant) || !isApiPagination(variantsData.pagination)) {
+          throw new Error("Data varian dari API tidak valid.");
+        }
+        if (active) {
+          setVariants(variantsData.variants);
+          setPagination(variantsData.pagination);
+          setPage(Math.min(page, Math.max(1, variantsData.pagination.totalPages)));
+          setRequestError(null);
+        }
+      })
+      .catch((cause: unknown) => {
+        if (active) setRequestError({ key: requestKey, message: getApiError(cause) });
+      })
+      .finally(() => {
+        if (active) setLoadedRequestKey(requestKey);
+      });
+    return () => { active = false; };
+  }, [requestQuery, requestKey, page]);
 
   function openCreate() {
     setEditingVariant(null);
@@ -129,10 +144,7 @@ export function VariantsManagement() {
       if (!isRecord(payload) || !isVariant(payload.variant)) {
         throw new Error("Data varian hasil penyimpanan tidak valid.");
       }
-      const saved = payload.variant;
-      setVariants((current) => editingVariant
-        ? current.map((item) => item.id === saved.id ? saved : item)
-        : [saved, ...current]);
+      setReloadKey((current) => current + 1);
       dialogRef.current?.close();
       toast.success(editingVariant ? "Perubahan varian tersimpan." : "Varian berhasil ditambahkan.");
     } catch (cause) {
@@ -146,7 +158,7 @@ export function VariantsManagement() {
     if (!window.confirm(`Hapus varian ${variant.name}? Tindakan ini tidak dapat dibatalkan.`)) return;
     try {
       await api.delete(`/variants/${variant.id}`);
-      setVariants((current) => current.filter((item) => item.id !== variant.id));
+      setReloadKey((current) => current + 1);
       toast.success("Varian berhasil dihapus.");
     } catch (cause) {
       toast.error(getApiError(cause));
@@ -162,7 +174,7 @@ export function VariantsManagement() {
           <p>Kelola cabang, nama varian, jumlah, satuan, dan harga satuan.</p>
         </div>
         <div className="variants-heading-actions">
-          <span className="variants-count"><Package aria-hidden="true" /> {variants.length} VARIAN</span>
+          <span className="variants-count"><Package aria-hidden="true" /> {pagination.total} VARIAN</span>
           <button className="variants-primary-button" type="button" onClick={openCreate}>
             <Plus size={17} aria-hidden="true" /> Tambah varian
           </button>
@@ -173,13 +185,13 @@ export function VariantsManagement() {
         <header className="variants-table-header">
           <div>
             <span className="dashboard-eyebrow">DATA INVENTARIS</span>
-            <h2 id="variants-table-title">Semua varian <span>{filteredVariants.length}</span></h2>
+            <h2 id="variants-table-title">Semua varian <span>{pagination.total}</span></h2>
             <p>Daftar varian produk dan harga yang berlaku.</p>
           </div>
           <label className="variants-search">
             <Search aria-hidden="true" />
             <span className="sr-only">Cari nama varian</span>
-            <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Cari nama varian" />
+            <input type="search" value={query} onChange={(event) => { setPage(1); setQuery(event.target.value); }} placeholder="Cari nama varian" />
           </label>
         </header>
 
@@ -188,7 +200,7 @@ export function VariantsManagement() {
           <table className="variants-table">
             <thead><tr><th>Nama Varian</th><th>Cabang</th><th>Jumlah</th><th>Satuan</th><th>Harga Satuan</th><th><span className="sr-only">Aksi</span></th></tr></thead>
             <tbody>
-              {loading ? <tr><td className="variants-state" colSpan={6}>Memuat daftar varian…</td></tr> : error ? <tr><td className="variants-state" colSpan={6}>Data varian belum dapat dimuat.</td></tr> : filteredVariants.length === 0 ? <tr><td className="variants-state" colSpan={6}>{query ? "Varian tidak ditemukan." : "Belum ada varian. Tambahkan varian pertama Anda."}</td></tr> : filteredVariants.map((variant) => (
+              {loading ? <tr><td className="variants-state" colSpan={6}>Memuat daftar varian…</td></tr> : error ? <tr><td className="variants-state" colSpan={6}>Data varian belum dapat dimuat.</td></tr> : variants.length === 0 ? <tr><td className="variants-state" colSpan={6}>{query ? "Varian tidak ditemukan." : "Belum ada varian. Tambahkan varian pertama Anda."}</td></tr> : variants.map((variant) => (
                 <tr key={variant.id}>
                   <td className="variants-name">{variant.name}</td>
                   <td>{variant.branchName ?? "Belum ditentukan"}</td>
@@ -204,7 +216,17 @@ export function VariantsManagement() {
             </tbody>
           </table>
         </div>
-        <footer className="variants-table-footer">Menampilkan <strong>{filteredVariants.length}</strong> dari <strong>{variants.length}</strong> varian</footer>
+        <ApiPagination
+          page={pagination.page}
+          limit={pageSize}
+          total={pagination.total}
+          totalPages={pagination.totalPages}
+          itemLabel="varian"
+          isLoading={loading}
+          onPageChange={setPage}
+          onLimitChange={(limit) => { setPage(1); setPageSize(limit); }}
+        />
+        <footer className="variants-table-footer">Halaman {pagination.page} dari {Math.max(1, pagination.totalPages)}</footer>
       </section>
 
       <dialog className="variants-dialog" ref={dialogRef} onClose={() => setEditingVariant(null)} aria-labelledby="variant-form-title">

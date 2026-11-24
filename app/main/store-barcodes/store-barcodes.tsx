@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { CalendarDays, ChevronLeft, ChevronRight, Printer, Search } from "lucide-react";
 import QRCode from "qrcode";
+import { useDebounce } from "@/hooks/use-debounce";
 import { getApi, getApiError } from "@/lib/api";
 import { isStore, type Store } from "@/lib/stores";
 
@@ -31,6 +32,7 @@ export function StoreBarcodes() {
   const [printMode, setPrintMode] = useState<PrintMode>("normal");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const debouncedStoreName = useDebounce(storeName);
   const printSheets = Array.from({ length: Math.ceil(stores.length / STORE_PRINT_PAGE_SIZE) }, (_, index) =>
     stores.slice(index * STORE_PRINT_PAGE_SIZE, (index + 1) * STORE_PRINT_PAGE_SIZE),
   );
@@ -40,7 +42,7 @@ export function StoreBarcodes() {
     const params = new URLSearchParams({ page: String(pagination.page), limit: "50" });
     if (startDate) params.set("start_date", startDate);
     if (endDate) params.set("end_date", endDate);
-    if (storeName.trim()) params.set("store_name", storeName.trim());
+    if (debouncedStoreName.trim()) params.set("store_name", debouncedStoreName.trim());
     getApi(`/stores?${params.toString()}`)
       .then(({ data }) => {
         if (!isRecord(data) || !Array.isArray(data.stores) || !data.stores.every(isStore) || !isRecord(data.pagination)) {
@@ -60,7 +62,7 @@ export function StoreBarcodes() {
       .catch((cause: unknown) => { if (active) setError(getApiError(cause)); })
       .finally(() => { if (active) setIsLoading(false); });
     return () => { active = false; };
-  }, [pagination.page, startDate, endDate, storeName]);
+  }, [pagination.page, startDate, endDate, debouncedStoreName]);
 
   useEffect(() => {
     let active = true;

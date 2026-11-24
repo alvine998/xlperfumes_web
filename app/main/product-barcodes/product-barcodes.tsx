@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Printer } from "lucide-react";
 import QRCode from "qrcode";
-import { getApi, getApiError } from "@/lib/api";
+import { getApiError } from "@/lib/api";
+import { getAllApiPages } from "@/lib/pagination";
 import { ProductBarcodePrintSheets } from "./product-barcode-print-sheets";
 import { ProductBarcodeCard } from "./product-barcode-card";
 import { printProductBarcodes } from "./product-barcode-print";
@@ -72,17 +73,14 @@ export function ProductBarcodes() {
 
   useEffect(() => {
     let active = true;
-    Promise.all([getApi("/products/branches"), getApi("/variants")])
-      .then(([branchesResponse, variantsResponse]) => {
-        const branchesData: unknown = branchesResponse.data;
-        const variantsData: unknown = variantsResponse.data;
-        if (!isRecord(branchesData) || !Array.isArray(branchesData.branches) || !branchesData.branches.every(isBranch) ||
-          !isRecord(variantsData) || !Array.isArray(variantsData.variants) || !variantsData.variants.every(isVariant)) {
-          throw new Error("Data cabang atau varian dari API tidak valid.");
-        }
+    Promise.all([
+      getAllApiPages("/products/branches", "branches", isBranch),
+      getAllApiPages("/variants", "variants", isVariant),
+    ])
+      .then(([branchRows, variantRows]) => {
         if (active) {
-          setBranches(branchesData.branches);
-          setVariants(variantsData.variants);
+          setBranches(branchRows);
+          setVariants(variantRows);
         }
       })
       .catch((cause: unknown) => { if (active) setFilterOptionsError(getApiError(cause)); });
@@ -91,13 +89,10 @@ export function ProductBarcodes() {
 
   useEffect(() => {
     let active = true;
-    getApi(`/products?${filterQuery}`)
-      .then(({ data }) => {
-        if (!isRecord(data) || !Array.isArray(data.products) || !data.products.every(isProduct)) {
-          throw new Error("Data produk dari API tidak valid.");
-        }
+    getAllApiPages(`/products?${filterQuery}`, "products", isProduct, 100, totalData)
+      .then((productRows) => {
         if (active) {
-          setProducts(data.products);
+          setProducts(productRows);
           setRequestError(null);
         }
       })
@@ -109,7 +104,7 @@ export function ProductBarcodes() {
       })
       .finally(() => { if (active) setLoadedQuery(filterQuery); });
     return () => { active = false; };
-  }, [filterQuery]);
+  }, [filterQuery, totalData]);
 
   useEffect(() => {
     if (!loadedQuery || loading || error) return;

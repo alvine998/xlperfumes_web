@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { MapPin, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { DashboardFooter } from "@/components/layout/dashboard-footer";
 import { DataTable } from "@/components/ui/data-table";
+import { ApiPagination } from "@/components/ui/api-pagination";
 import { Modal } from "@/components/ui/modal";
+import { useDebounce } from "@/hooks/use-debounce";
 import { api, getApi, getApiError } from "@/lib/api";
 import { isBranch, type Branch } from "@/lib/branches";
+import { isApiPagination, type ApiPagination as ApiPaginationState } from "@/lib/pagination";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -40,43 +43,49 @@ function dateLabel(value: string) {
 
 export function BranchesManagement() {
   const [branches, setBranches] = useState<Branch[]>([]);
+  const [pagination, setPagination] = useState<ApiPaginationState>({ page: 1, limit: 50, total: 0, totalPages: 0 });
+  const [pageSize, setPageSize] = useState(50);
+  const [page, setPage] = useState(1);
+  const [reloadKey, setReloadKey] = useState(0);
   const [search, setSearch] = useState("");
   const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loadedRequestKey, setLoadedRequestKey] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState("");
+  const [requestError, setRequestError] = useState<{ key: string; message: string } | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const debouncedSearch = useDebounce(search);
+
+  const params = new URLSearchParams({ page: String(page), limit: String(pageSize) });
+  if (debouncedSearch.trim()) params.set("search", debouncedSearch.trim());
+  const requestQuery = params.toString();
+  const requestKey = `${requestQuery}|reload=${reloadKey}`;
+  const isLoading = loadedRequestKey !== requestKey;
+  const error = requestError?.key === requestKey ? requestError.message : "";
 
   useEffect(() => {
     let isCurrent = true;
-    getApi("/branches")
+    getApi(`/branches?${requestQuery}`)
       .then(({ data }) => {
         if (!isCurrent) return;
         if (!isRecord(data) || !Array.isArray(data.branches) ||
-          !data.branches.every(isBranch)) {
+          !data.branches.every(isBranch) || !isApiPagination(data.pagination)) {
           throw new Error("API mengembalikan daftar cabang yang tidak valid.");
         }
         setBranches(data.branches);
+        setPagination(data.pagination);
+        setPage(Math.min(page, Math.max(1, data.pagination.totalPages)));
+        setRequestError(null);
       })
       .catch((cause: unknown) => {
-        if (isCurrent) setError(getApiError(cause));
+        if (isCurrent) setRequestError({ key: requestKey, message: getApiError(cause) });
       })
       .finally(() => {
-        if (isCurrent) setIsLoading(false);
+        if (isCurrent) setLoadedRequestKey(requestKey);
       });
     return () => {
       isCurrent = false;
     };
-  }, []);
-
-  const filteredBranches = useMemo(() => {
-    const query = search.trim().toLocaleLowerCase("id-ID");
-    return branches.filter((branch) =>
-      [branch.name, branch.city, branch.address].some((value) =>
-        value.toLocaleLowerCase("id-ID").includes(query),
-      ),
-    );
-  }, [branches, search]);
+  }, [requestQuery, requestKey, page]);
 
   function openCreate() {
     setEditingBranch(null);
@@ -105,15 +114,7 @@ export function BranchesManagement() {
         body,
       );
       if (branch) {
-        setBranches((current) =>
-          editingBranch
-            ? current.map((item) =>
-              item.id === branch.id
-                ? { ...branch, storeCount: item.storeCount }
-                : item,
-            )
-            : [branch, ...current],
-        );
+        setReloadKey((current) => current + 1);
       }
       dialogRef.current?.close();
       toast.success(
@@ -138,7 +139,7 @@ export function BranchesManagement() {
     }
     try {
       await requestBranch(`/${branch.id}`, "DELETE");
-      setBranches((current) => current.filter((item) => item.id !== branch.id));
+      setReloadKey((current) => current + 1);
       toast.success("Cabang berhasil dihapus.");
     } catch (cause) {
       toast.error(
@@ -173,7 +174,7 @@ export function BranchesManagement() {
           <div>
             <span className="dashboard-eyebrow">DATA OPERASIONAL</span>
             <h2 id="branches-table-title">
-              Semua cabang <span>{filteredBranches.length}</span>
+              Semua cabang <span>{pagination.total}</span>
             </h2>
             <p>Cabang yang masih digunakan oleh toko tidak dapat dihapus.</p>
           </div>
@@ -183,7 +184,7 @@ export function BranchesManagement() {
             <input
               type="search"
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              onChange={(event) => { setPage(1); setSearch(event.target.value); }}
               placeholder="Cari cabang"
             />
           </label>
@@ -199,7 +200,7 @@ export function BranchesManagement() {
               id: "number",
               header: "NO",
               className: "branches-number",
-              renderCell: (branch) => filteredBranches.indexOf(branch) + 1,
+              renderCell: (branch) => (page - 1) * pageSize + branches.indexOf(branch) + 1,
             },
             {
               id: "name",
@@ -264,7 +265,7 @@ export function BranchesManagement() {
               ),
             },
           ]}
-          rows={filteredBranches}
+          rows={branches}
           getRowKey={(branch) => branch.id}
           hasError={Boolean(error)}
           isLoading={isLoading}
@@ -273,20 +274,29 @@ export function BranchesManagement() {
             <>
               <span className="branches-empty-icon"><MapPin aria-hidden="true" /></span>
               <strong>
-                {branches.length ? "Tidak ada cabang ditemukan" : "Belum ada cabang"}
+                {search ? "Tidak ada cabang ditemukan" : "Belum ada cabang"}
               </strong>
               <span>
-                {branches.length
+                {search
                   ? "Coba ubah kata kunci pencarian."
                   : "Tambahkan cabang untuk mulai mengelola lokasi."}
               </span>
             </>
           }
         />
+        <ApiPagination
+          page={pagination.page}
+          limit={pageSize}
+          total={pagination.total}
+          totalPages={pagination.totalPages}
+          itemLabel="cabang"
+          isLoading={isLoading}
+          onPageChange={setPage}
+          onLimitChange={(limit) => { setPage(1); setPageSize(limit); }}
+        />
         <footer className="branches-table-footer">
           <span>
-            Menampilkan <strong>{filteredBranches.length}</strong> dari{" "}
-            <strong>{branches.length}</strong> cabang
+            Halaman {pagination.page} dari {Math.max(1, pagination.totalPages)}
           </span>
           <span>XL Perfumes <i>·</i> Daftar cabang</span>
         </footer>

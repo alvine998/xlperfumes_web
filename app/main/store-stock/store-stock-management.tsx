@@ -8,12 +8,15 @@ import {
   ArrowUp,
   CalendarDays,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Minus,
   Package,
   Plus,
   Search,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { useDebounce } from "@/hooks/use-debounce";
 import { api, getApi, getApiError } from "@/lib/api";
 
 type StockRow = {
@@ -38,9 +41,22 @@ type StoreSummary = {
   updatedBy: StockRow["updatedBy"];
   items: StockRow[];
 };
+type Pagination = { page: number; limit: number; total: number; totalPages: number };
+
+const PAGE_SIZES = [10, 25, 50] as const;
+const INITIAL_PAGINATION: Pagination = {
+  page: 1,
+  limit: PAGE_SIZES[0],
+  total: 0,
+  totalPages: 0,
+};
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+function isString(value: unknown): value is string {
+  return typeof value === "string";
 }
 
 function isStock(value: unknown): value is StockRow {
@@ -64,6 +80,24 @@ function isStock(value: unknown): value is StockRow {
   );
 }
 
+function isPagination(value: unknown): value is Pagination {
+  return (
+    isRecord(value) &&
+    typeof value.page === "number" &&
+    typeof value.limit === "number" &&
+    typeof value.total === "number" &&
+    typeof value.totalPages === "number" &&
+    Number.isInteger(value.page) &&
+    Number.isInteger(value.limit) &&
+    Number.isInteger(value.total) &&
+    Number.isInteger(value.totalPages) &&
+    value.page >= 1 &&
+    value.limit >= 1 &&
+    value.total >= 0 &&
+    value.totalPages >= 0
+  );
+}
+
 function formatDate(value: string | null) {
   if (!value) return "Belum diperbarui";
   return new Intl.DateTimeFormat("id-ID", {
@@ -79,37 +113,63 @@ export function StoreStockManagement() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [pageSize, setPageSize] = useState<(typeof PAGE_SIZES)[number]>(10);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState(INITIAL_PAGINATION);
+  const [branches, setBranches] = useState<string[]>([]);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [loadedRequestKey, setLoadedRequestKey] = useState<string | null>(null);
+  const [requestError, setRequestError] = useState<{ key: string; message: string } | null>(null);
   const [adjustment, setAdjustment] = useState<{
     row: StockRow;
     direction: "increase" | "decrease";
   } | null>(null);
   const [quantity, setQuantity] = useState(1);
+  const debouncedSearch = useDebounce(search);
+
+  const params = new URLSearchParams({ page: String(page), limit: String(pageSize), sortOrder });
+  const query = debouncedSearch.trim();
+  if (query) params.set("search", query);
+  if (branch !== "all") params.set("branch", branch);
+  if (startDate) params.set("startDate", startDate);
+  if (endDate) params.set("endDate", endDate);
+  const requestQuery = params.toString();
+  const requestKey = `${requestQuery}|reload=${reloadKey}`;
+  const loading = loadedRequestKey !== requestKey;
+  const error = requestError?.key === requestKey ? requestError.message : "";
 
   useEffect(() => {
     let current = true;
-    getApi("/store-stock")
+    getApi(`/store-stock?${requestQuery}`)
       .then(({ data }) => {
         if (
           !isRecord(data) ||
           !Array.isArray(data.stocks) ||
-          !data.stocks.every(isStock)
+          !data.stocks.every(isStock) ||
+          !isPagination(data.pagination) ||
+          !Array.isArray(data.branches) ||
+          !data.branches.every(isString)
         ) {
           throw new Error("Data stok dari API tidak valid.");
         }
-        if (current) setRows(data.stocks);
+        if (current) {
+          setRows(data.stocks);
+          setBranches(data.branches);
+          setPagination(data.pagination);
+          setPage(data.pagination.page);
+          setRequestError(null);
+        }
       })
       .catch((cause: unknown) => {
-        if (current) setError(getApiError(cause));
+        if (current) setRequestError({ key: requestKey, message: getApiError(cause) });
       })
       .finally(() => {
-        if (current) setLoading(false);
+        if (current) setLoadedRequestKey(requestKey);
       });
     return () => {
       current = false;
     };
-  }, []);
+  }, [requestQuery, requestKey]);
 
   const stores = useMemo(() => {
     const grouped = new Map<number, StoreSummary>();
@@ -137,41 +197,10 @@ export function StoreStockManagement() {
     }
     return [...grouped.values()];
   }, [rows]);
-  const branches = useMemo(
-    () =>
-      [...new Set(stores.map((store) => store.branch))].sort((a, b) =>
-        a.localeCompare(b, "id-ID"),
-      ),
-    [stores],
-  );
-  const filteredStores = useMemo(() => {
-    const query = search.trim().toLocaleLowerCase("id-ID");
-    return stores
-      .filter((store) => {
-        const updated = store.lastUpdate
-          ? new Date(store.lastUpdate).getTime()
-          : null;
-        const start = startDate
-          ? new Date(`${startDate}T00:00:00`).getTime()
-          : -Infinity;
-        const end = endDate
-          ? new Date(`${endDate}T23:59:59.999`).getTime()
-          : Infinity;
-        return (
-          (!query || store.name.toLocaleLowerCase("id-ID").includes(query)) &&
-          (branch === "all" || store.branch === branch) &&
-          ((start === -Infinity && end === Infinity) ||
-            (updated !== null && updated >= start && updated <= end))
-        );
-      })
-      .sort((a, b) => {
-        if (!a.lastUpdate) return b.lastUpdate ? 1 : 0;
-        if (!b.lastUpdate) return -1;
-        const delta =
-          new Date(a.lastUpdate).getTime() - new Date(b.lastUpdate).getTime();
-        return sortOrder === "newest" ? -delta : delta;
-      });
-  }, [stores, search, branch, startDate, endDate, sortOrder]);
+  const pageCount = Math.max(1, pagination.totalPages);
+  const currentPage = Math.min(page, pageCount);
+  const rangeStart = pagination.total ? (currentPage - 1) * pageSize + 1 : 0;
+  const rangeEnd = Math.min(currentPage * pageSize, pagination.total);
 
   async function saveAdjustment() {
     if (!adjustment || quantity < 1) return;
@@ -190,6 +219,7 @@ export function StoreStockManagement() {
       setRows((current) =>
         current.map((row) => (row.id === updatedStock.id ? updatedStock : row)),
       );
+      setReloadKey((current) => current + 1);
       setAdjustment(null);
       setQuantity(1);
       toast.success("Stok toko berhasil diperbarui.");
@@ -211,7 +241,7 @@ export function StoreStockManagement() {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
           <span className="store-stock-total">
-            <Package aria-hidden="true" /> {stores.length} TOKO
+            <Package aria-hidden="true" /> {pagination.total} TOKO
           </span>
           <Link className="store-stock-add-link" href="/main/store-stock/add">
             <Plus aria-hidden="true" /> Tambah Stok
@@ -227,7 +257,7 @@ export function StoreStockManagement() {
           <div>
             <span className="dashboard-eyebrow">DAFTAR INVENTARIS</span>
             <h2 id="store-stock-table-title">
-              Total stok per toko <span>{filteredStores.length}</span>
+              Total stok per toko <span>{pagination.total}</span>
             </h2>
             <p>Total seluruh stok yang tersedia di setiap toko.</p>
           </div>
@@ -237,7 +267,10 @@ export function StoreStockManagement() {
               <span className="sr-only">Cari nama toko</span>
               <input
                 value={search}
-                onChange={(event) => setSearch(event.target.value)}
+                onChange={(event) => {
+                  setPage(1);
+                  setSearch(event.target.value);
+                }}
                 placeholder="Cari nama toko…"
               />
             </label>
@@ -248,7 +281,10 @@ export function StoreStockManagement() {
               <input
                 type="date"
                 value={startDate}
-                onChange={(event) => setStartDate(event.target.value)}
+                onChange={(event) => {
+                  setPage(1);
+                  setStartDate(event.target.value);
+                }}
               />
             </label>
             <label className="store-stock-date">
@@ -258,14 +294,20 @@ export function StoreStockManagement() {
               <input
                 type="date"
                 value={endDate}
-                onChange={(event) => setEndDate(event.target.value)}
+                onChange={(event) => {
+                  setPage(1);
+                  setEndDate(event.target.value);
+                }}
               />
             </label>
             <label className="store-stock-select">
               <span className="sr-only">Filter cabang</span>
               <select
                 value={branch}
-                onChange={(event) => setBranch(event.target.value)}
+                onChange={(event) => {
+                  setPage(1);
+                  setBranch(event.target.value);
+                }}
               >
                 <option value="all">Semua Cabang</option>
                 {branches.map((item) => (
@@ -280,11 +322,12 @@ export function StoreStockManagement() {
               <span className="sr-only">Urutkan tanggal</span>
               <select
                 value={sortOrder}
-                onChange={(event) =>
+                onChange={(event) => {
+                  setPage(1);
                   setSortOrder(
                     event.target.value === "oldest" ? "oldest" : "newest",
-                  )
-                }
+                  );
+                }}
               >
                 <option value="newest">Terbaru</option>
                 <option value="oldest">Terlama</option>
@@ -319,14 +362,14 @@ export function StoreStockManagement() {
                     Gagal memuat toko: {error}
                   </td>
                 </tr>
-              ) : filteredStores.length === 0 ? (
+              ) : pagination.total === 0 ? (
                 <tr>
                   <td className="store-stock-state" colSpan={6}>
                     Tidak ada toko yang cocok dengan filter.
                   </td>
                 </tr>
               ) : (
-                filteredStores.map((store) => (
+                stores.map((store) => (
                   <tr key={store.storeId}>
                     <td>
                       <strong className="store-stock-name">{store.name}</strong>
@@ -382,8 +425,56 @@ export function StoreStockManagement() {
           </table>
         </div>
         <footer className="store-stock-footer">
-          Menampilkan <strong>{filteredStores.length}</strong> dari{" "}
-          <strong>{stores.length}</strong> toko
+          <span className="store-stock-page-summary">
+            Menampilkan <strong>{rangeStart}–{rangeEnd}</strong> dari{" "}
+            <strong>{pagination.total}</strong> toko
+          </span>
+          <div className="store-stock-pagination">
+            <label className="store-stock-page-size">
+              Baris per halaman
+              <select
+                aria-label="Baris per halaman"
+                value={pageSize}
+                onChange={(event) => {
+                  const nextPageSize = PAGE_SIZES.find(
+                    (size) => size === Number(event.target.value),
+                  );
+                  if (nextPageSize) setPageSize(nextPageSize);
+                  setPage(1);
+                }}
+              >
+                {PAGE_SIZES.map((size) => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <nav
+              className="store-stock-page-nav"
+              aria-label="Navigasi halaman stok toko"
+            >
+              <span>Halaman {currentPage} dari {pageCount}</span>
+              <button
+                type="button"
+                aria-label="Halaman sebelumnya"
+                onClick={() => setPage((current) => Math.max(1, current - 1))}
+                disabled={currentPage <= 1 || loading}
+              >
+                <ChevronLeft aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                aria-label="Halaman berikutnya"
+                onClick={() =>
+                  setPage((current) => Math.min(pageCount, current + 1))
+                }
+                disabled={currentPage >= pageCount || loading}
+              >
+                <ChevronRight aria-hidden="true" />
+              </button>
+            </nav>
+          </div>
         </footer>
       </section>
 

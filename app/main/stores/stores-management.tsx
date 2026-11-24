@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import Image from "next/image";
 import { jsPDF } from "jspdf";
 import QRCode from "qrcode";
@@ -21,9 +21,12 @@ import toast from "react-hot-toast";
 import { DashboardFooter } from "@/components/layout/dashboard-footer";
 import { Modal } from "@/components/ui/modal";
 import { DataTable } from "@/components/ui/data-table";
+import { ApiPagination } from "@/components/ui/api-pagination";
+import { useDebounce } from "@/hooks/use-debounce";
 import { api, getApi, getApiError } from "@/lib/api";
 import { isBranch, type Branch } from "@/lib/branches";
 import { isStore, type Store } from "@/lib/stores";
+import { getAllApiPages, isApiPagination, type ApiPagination as ApiPaginationState } from "@/lib/pagination";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -55,43 +58,57 @@ function dateLabel(value: string) {
 export function StoresManagement() {
   const [stores, setStores] = useState<Store[]>([]);
   const [availableBranches, setAvailableBranches] = useState<Branch[]>([]);
+  const [pagination, setPagination] = useState<ApiPaginationState>({ page: 1, limit: 50, total: 0, totalPages: 0 });
+  const [pageSize, setPageSize] = useState(50);
+  const [page, setPage] = useState(1);
+  const [reloadKey, setReloadKey] = useState(0);
   const [search, setSearch] = useState("");
   const [branchFilter, setBranchFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("newest");
   const [editingStore, setEditingStore] = useState<Store | null>(null);
   const [qrCodes, setQrCodes] = useState<Record<number, string>>({});
-  const [isLoading, setIsLoading] = useState(true);
+  const [loadedRequestKey, setLoadedRequestKey] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
-  const [error, setError] = useState("");
+  const [requestError, setRequestError] = useState<{ key: string; message: string } | null>(null);
+  const [lookupError, setLookupError] = useState("");
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const debouncedSearch = useDebounce(search);
+
+  const params = new URLSearchParams({ page: String(page), limit: String(pageSize), sortOrder });
+  if (debouncedSearch.trim()) params.set("store_name", debouncedSearch.trim());
+  if (branchFilter !== "all") params.set("branch", branchFilter);
+  const requestQuery = params.toString();
+  const requestKey = `${requestQuery}|reload=${reloadKey}`;
+  const isLoading = loadedRequestKey !== requestKey;
+  const error = (requestError?.key === requestKey ? requestError.message : "") || lookupError;
 
   useEffect(() => {
     let isCurrent = true;
-    Promise.all([getApi("/stores"), getApi("/branches")])
-      .then(([storesResponse, branchesResponse]) => {
-        if (!isCurrent) return;
-        const storePayload = storesResponse.data;
-        const branchPayload = branchesResponse.data;
-        if (!isRecord(storePayload) || !Array.isArray(storePayload.stores) ||
-          !storePayload.stores.every(isStore)) {
-          throw new Error("API mengembalikan daftar toko yang tidak valid.");
-        }
-        if (!isRecord(branchPayload) || !Array.isArray(branchPayload.branches) ||
-          !branchPayload.branches.every(isBranch)) {
-          throw new Error("API mengembalikan daftar cabang yang tidak valid.");
-        }
-        setStores(storePayload.stores);
-        setAvailableBranches(branchPayload.branches);
-      })
-      .catch((cause: unknown) => {
-        if (isCurrent) setError(getApiError(cause));
-      })
-      .finally(() => {
-        if (isCurrent) setIsLoading(false);
-      });
+    getAllApiPages("/branches", "branches", isBranch)
+      .then((rows) => { if (isCurrent) setAvailableBranches(rows); })
+      .catch((cause: unknown) => { if (isCurrent) setLookupError(getApiError(cause)); });
     return () => { isCurrent = false; };
   }, []);
+
+  useEffect(() => {
+    let isCurrent = true;
+    getApi(`/stores?${requestQuery}`)
+      .then(({ data }) => {
+        if (!isCurrent) return;
+        if (!isRecord(data) || !Array.isArray(data.stores) || !data.stores.every(isStore) ||
+          !isApiPagination(data.pagination)) {
+          throw new Error("API mengembalikan daftar toko yang tidak valid.");
+        }
+        setStores(data.stores);
+        setPagination(data.pagination);
+        setPage(Math.min(page, Math.max(1, data.pagination.totalPages)));
+        setRequestError(null);
+      })
+      .catch((cause: unknown) => { if (isCurrent) setRequestError({ key: requestKey, message: getApiError(cause) }); })
+      .finally(() => { if (isCurrent) setLoadedRequestKey(requestKey); });
+    return () => { isCurrent = false; };
+  }, [requestQuery, requestKey, page]);
 
   useEffect(() => {
     let isCurrent = true;
@@ -120,27 +137,8 @@ export function StoresManagement() {
     };
   }, [stores]);
 
-  const branches = useMemo(
-    () =>
-      [...new Set(stores.map((store) => store.branch))].sort((a, b) =>
-        a.localeCompare(b, "id"),
-      ),
-    [stores],
-  );
-  const filteredStores = useMemo(() => {
-    const query = search.trim().toLocaleLowerCase("id-ID");
-    return stores
-      .filter(
-        (store) =>
-          store.name.toLocaleLowerCase("id-ID").includes(query) &&
-          (branchFilter === "all" || store.branch === branchFilter),
-      )
-      .sort((a, b) =>
-        sortOrder === "newest"
-          ? new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          : new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-      );
-  }, [stores, search, branchFilter, sortOrder]);
+  const branches = [...new Set(availableBranches.map(({ name }) => name))].sort((a, b) => a.localeCompare(b, "id"));
+  const filteredStores = stores;
 
   function openCreate() {
     setEditingStore(null);
@@ -209,12 +207,7 @@ export function StoresManagement() {
         editingStore ? "PATCH" : "POST",
         body,
       );
-      if (store)
-        setStores((current) =>
-          editingStore
-            ? current.map((item) => (item.id === store.id ? store : item))
-            : [store, ...current],
-        );
+      if (store) setReloadKey((current) => current + 1);
       dialogRef.current?.close();
       toast.success(
         editingStore
@@ -239,7 +232,8 @@ export function StoresManagement() {
       return;
     try {
       await requestStore(`/${store.id}`, "DELETE");
-      setStores((current) => current.filter((item) => item.id !== store.id));
+      if (stores.length === 1 && page > 1) setPage(page - 1);
+      else setReloadKey((current) => current + 1);
       toast.success("Toko berhasil dihapus.");
     } catch (cause) {
       toast.error(
@@ -248,25 +242,40 @@ export function StoresManagement() {
     }
   }
 
-  function exportExcel() {
-    const rows = filteredStores.map((store) => ({
-      "Nama Toko": store.name,
-      Cabang: store.branch,
-      Alamat: store.address,
-      Latitude: store.latitude,
-      Longitude: store.longitude,
-      "Tanggal Dibuat": dateLabel(store.createdAt),
-    }));
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(
-      workbook,
-      XLSX.utils.json_to_sheet(rows),
-      "Daftar Toko",
-    );
-    XLSX.writeFile(workbook, "daftar-toko-xl-perfumes.xlsx");
+  async function loadAllFilteredStores() {
+    const params = new URLSearchParams({ sortOrder });
+    if (search.trim()) params.set("store_name", search.trim());
+    if (branchFilter !== "all") params.set("branch", branchFilter);
+    return getAllApiPages(`/stores?${params.toString()}`, "stores", isStore);
   }
 
-  function exportPdf() {
+  async function exportExcel() {
+    try {
+      const exportStores = await loadAllFilteredStores();
+      const rows = exportStores.map((store) => ({
+        "Nama Toko": store.name,
+        Cabang: store.branch,
+        Alamat: store.address,
+        Latitude: store.latitude,
+        Longitude: store.longitude,
+        "Tanggal Dibuat": dateLabel(store.createdAt),
+      }));
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(rows), "Daftar Toko");
+      XLSX.writeFile(workbook, "daftar-toko-xl-perfumes.xlsx");
+    } catch (cause) {
+      toast.error(getApiError(cause));
+    }
+  }
+
+  async function exportPdf() {
+    let exportStores: Store[];
+    try {
+      exportStores = await loadAllFilteredStores();
+    } catch (cause) {
+      toast.error(getApiError(cause));
+      return;
+    }
     const pdf = new jsPDF({
       orientation: "landscape",
       unit: "mm",
@@ -288,7 +297,7 @@ export function StoresManagement() {
     ].forEach((label, index) => pdf.text(label, columns[index] ?? 14, y));
     pdf.setFont("helvetica", "normal");
     y += 7;
-    filteredStores.forEach((store) => {
+    exportStores.forEach((store) => {
       if (y > 190) {
         pdf.addPage();
         y = 18;
@@ -321,7 +330,7 @@ export function StoresManagement() {
         </div>
         <div className="stores-heading-actions">
           <span className="report-updated">
-            <span className="live-indicator" /> {stores.length} TOKO TERDAFTAR
+            <span className="live-indicator" /> {pagination.total} TOKO TERDAFTAR
           </span>
           <button
             className="stores-primary-button"
@@ -342,7 +351,7 @@ export function StoresManagement() {
           <div>
             <span>Total toko</span>
             <strong>
-              {stores.length}
+              {pagination.total}
               <small>toko</small>
             </strong>
           </div>
@@ -371,7 +380,7 @@ export function StoresManagement() {
           <div>
             <span className="dashboard-eyebrow">DATA OPERASIONAL</span>
             <h2 id="stores-table-title">
-              Semua toko <span>{filteredStores.length}</span>
+              Semua toko <span>{pagination.total}</span>
             </h2>
             <p>QR code toko dibuat otomatis dari nama toko.</p>
           </div>
@@ -382,7 +391,7 @@ export function StoresManagement() {
               <input
                 type="search"
                 value={search}
-                onChange={(event) => setSearch(event.target.value)}
+                onChange={(event) => { setPage(1); setSearch(event.target.value); }}
                 placeholder="Cari nama toko"
               />
             </label>
@@ -390,7 +399,7 @@ export function StoresManagement() {
               <span className="sr-only">Urutkan tanggal</span>
               <select
                 value={sortOrder}
-                onChange={(event) => setSortOrder(event.target.value)}
+                onChange={(event) => { setPage(1); setSortOrder(event.target.value); }}
               >
                 <option value="newest">Terbaru</option>
                 <option value="oldest">Terlama</option>
@@ -400,7 +409,7 @@ export function StoresManagement() {
               <span className="sr-only">Filter cabang</span>
               <select
                 value={branchFilter}
-                onChange={(event) => setBranchFilter(event.target.value)}
+                onChange={(event) => { setPage(1); setBranchFilter(event.target.value); }}
               >
                 <option value="all">Semua cabang</option>
                 {branches.map((branch) => (
@@ -538,22 +547,31 @@ export function StoresManagement() {
                 <Search aria-hidden="true" />
               </span>
               <strong>
-                {stores.length
+                {pagination.total
                   ? "Tidak ada toko ditemukan"
                   : "Belum ada toko terdaftar"}
               </strong>
               <span>
-                {stores.length
+                {pagination.total
                   ? "Ubah kata kunci atau filter cabang."
                   : "Tambahkan toko untuk mulai mengelola lokasi."}
               </span>
             </>
           }
         />
+        <ApiPagination
+          page={pagination.page}
+          limit={pageSize}
+          total={pagination.total}
+          totalPages={pagination.totalPages}
+          itemLabel="toko"
+          isLoading={isLoading}
+          onPageChange={setPage}
+          onLimitChange={(limit) => { setPage(1); setPageSize(limit); }}
+        />
         <footer className="stores-table-footer">
           <span>
-            Menampilkan <strong>{filteredStores.length}</strong> dari{" "}
-            <strong>{stores.length}</strong> toko
+            Halaman {pagination.page} dari {Math.max(1, pagination.totalPages)}
           </span>
           <span>
             XL Perfumes <i>·</i> Daftar toko
