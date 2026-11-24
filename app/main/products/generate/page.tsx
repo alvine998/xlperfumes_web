@@ -33,6 +33,6 @@ export default function GenerateProductsPage() {
 }
 
 async function AuthorizedGenerateProducts() {
-  await requireFeatureAccess("inventory");
+  await requireFeatureAccess("generate_product");
   return <GenerateProducts />;
 }

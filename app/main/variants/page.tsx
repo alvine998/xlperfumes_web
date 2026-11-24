@@ -33,6 +33,6 @@ export default function VariantsPage() {
 }
 
 async function AuthorizedVariants() {
-  await requireFeatureAccess("inventory");
+  await requireFeatureAccess("variants");
   return <VariantsManagement />;
 }

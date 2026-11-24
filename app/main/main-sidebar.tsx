@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import {
   ClipboardList,
+  ClipboardCheck,
   Layers,
   LayoutDashboard,
   MapPin,
@@ -36,29 +37,30 @@ const NAV_GROUPS: {
   {
     label: "INVENTARIS",
     items: [
-      { href: "/main/store-stock", label: "Stok Toko", feature: "inventory", Icon: Package },
-      { href: "/main/warehouse-stock", label: "Stok Gudang", feature: "inventory", Icon: Warehouse },
-      { href: "/main/variants", label: "Daftar Varian", feature: "inventory", Icon: Tags },
-      { href: "/main/products", label: "Daftar Produk", feature: "inventory", Icon: Clipboard },
-      { href: "/main/products/generate", label: "Generate Produk", feature: "inventory", Icon: PackagePlus },
-      { href: "/main/product-barcodes", label: "Cetak Barcode Produk", feature: "inventory", Icon: QrCode },
+      { href: "/main/store-stock", label: "Stok Toko", feature: "store_inventory", Icon: Package },
+      { href: "/main/warehouse-stock", label: "Stok Gudang", feature: "warehouse_inventory", Icon: Warehouse },
+      { href: "/main/variants", label: "Daftar Varian", feature: "variants", Icon: Tags },
+      { href: "/main/products", label: "Daftar Produk", feature: "products", Icon: Clipboard },
+      { href: "/main/products/generate", label: "Generate Produk", feature: "generate_product", Icon: PackagePlus },
+      { href: "/main/product-barcodes", label: "Cetak Barcode Produk", feature: "print_product_barcodes", Icon: QrCode },
     ],
   },
   {
     label: "JARINGAN TOKO",
     items: [
-      { href: "/main/branches", label: "Daftar Cabang", feature: "stores", Icon: MapPin },
-      { href: "/main/zones", label: "Daftar Zona", feature: "stores", Icon: Layers },
+      { href: "/main/branches", label: "Daftar Cabang", feature: "branchs", Icon: MapPin },
+      { href: "/main/zones", label: "Daftar Zona", feature: "zonas", Icon: Layers },
       { href: "/main/stores", label: "Daftar Toko", feature: "stores", Icon: Store },
-      { href: "/main/store-barcodes", label: "Cetak Barcode Toko", feature: "stores", Icon: Printer },
+      { href: "/main/kunjungan-toko", label: "Kunjungan Toko", feature: "store_visit", Icon: ClipboardCheck },
+      { href: "/main/store-barcodes", label: "Cetak Barcode Toko", feature: "print_store_barcodes", Icon: Printer },
     ],
   },
   {
     label: "ADMINISTRASI",
     items: [
       { href: "/main/users", label: "Pengguna", feature: "users", Icon: UsersRound },
-      { href: "/main/roles", label: "Akses Peran", feature: "users", Icon: ShieldCheck },
-      { href: "/main/activity-logs", label: "Log Aktivitas", feature: "activity", Icon: ClipboardList },
+      { href: "/main/roles", label: "Akses Peran", feature: "roles", Icon: ShieldCheck },
+      { href: "/main/activity-logs", label: "Log Aktivitas", feature: "activity_logs", Icon: ClipboardList },
     ],
   },
 ];
@@ -105,7 +107,7 @@ function MainSidebarContent() {
             <div className="dashboard-nav-group" role="group" aria-label={groupLabel} key={groupLabel}>
               <span className="dashboard-nav-group-label" aria-hidden="true">{groupLabel}</span>
               {visibleItems.map(({ href, label, Icon }) => {
-                const active = href === pathname;
+                const active = href === pathname || pathname.startsWith(`${href}/`);
                 return (
                   <Link
                     className={`dashboard-nav-link${active ? " is-active" : ""}`}

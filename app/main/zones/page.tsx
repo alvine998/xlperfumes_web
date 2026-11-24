@@ -39,6 +39,6 @@ export default function ZonesPage() {
 }
 
 async function AuthorizedZones() {
-  await requireFeatureAccess("stores");
+  await requireFeatureAccess("zonas");
   return <ZonesManagement />;
 }

@@ -33,6 +33,6 @@ export default function StoreBarcodesPage() {
 }
 
 async function AuthorizedStoreBarcodes() {
-  await requireFeatureAccess("stores");
+  await requireFeatureAccess("print_store_barcodes");
   return <StoreBarcodes />;
 }

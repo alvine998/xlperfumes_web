@@ -33,6 +33,6 @@ export default function StoreStockPage() {
 }
 
 async function AuthorizedStoreStock() {
-  await requireFeatureAccess("inventory");
+  await requireFeatureAccess("store_inventory");
   return <StoreStockManagement />;
 }

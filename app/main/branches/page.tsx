@@ -39,6 +39,6 @@ export default function BranchesPage() {
 }
 
 async function AuthorizedBranches() {
-  await requireFeatureAccess("stores");
+  await requireFeatureAccess("branchs");
   return <BranchesManagement />;
 }

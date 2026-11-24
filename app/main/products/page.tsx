@@ -33,6 +33,6 @@ export default function ProductsPage() {
 }
 
 async function AuthorizedProducts() {
-  await requireFeatureAccess("inventory");
+  await requireFeatureAccess("products");
   return <ProductsManagement />;
 }

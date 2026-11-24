@@ -34,6 +34,6 @@ export default async function WarehouseMovementPage({ params }: { params: Promis
 async function AuthorizedWarehouseMovement({ params }: { params: Promise<{ direction: string }> }) {
   const { direction } = await params;
   if (direction !== "in" && direction !== "out") notFound();
-  await requireFeatureAccess("inventory");
+  await requireFeatureAccess("warehouse_inventory");
   return <WarehouseMovementForm direction={direction} />;
 }

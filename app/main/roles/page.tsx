@@ -38,6 +38,6 @@ export default function RolesPage() {
 }
 
 async function AuthorizedRoles() {
-  await requireFeatureAccess("users");
+  await requireFeatureAccess("roles");
   return <RolesManagement />;
 }

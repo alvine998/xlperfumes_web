@@ -268,7 +268,7 @@ export function AnalyticsDashboard({ permissions }: { permissions: FeaturePermis
         className="status-section"
         id="stats"
         aria-labelledby="status-heading"
-        hidden={!permissions.inventory}
+        hidden={!(permissions.store_inventory || permissions.warehouse_inventory)}
       >
         <div className="section-heading">
           <div>
@@ -306,7 +306,7 @@ export function AnalyticsDashboard({ permissions }: { permissions: FeaturePermis
         className="sales-section"
         id="sales"
         aria-labelledby="sales-heading"
-        hidden={!permissions.sales}
+        hidden={!permissions.overview}
       >
         <div className="section-heading sales-heading">
           <div>
@@ -341,7 +341,7 @@ export function AnalyticsDashboard({ permissions }: { permissions: FeaturePermis
         className="monthly-sales-section"
         id="monthly-sales"
         aria-labelledby="monthly-sales-heading"
-        hidden={!permissions.sales}
+        hidden={!permissions.overview}
       >
         <div className="section-heading sales-heading">
           <div>

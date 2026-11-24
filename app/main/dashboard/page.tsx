@@ -41,6 +41,6 @@ export default function DashboardPage() {
 }
 
 async function AuthorizedDashboard() {
-  const permissions = await requireAnyFeatureAccess(["overview", "inventory", "sales"]);
+  const permissions = await requireAnyFeatureAccess(["overview"]);
   return <AnalyticsDashboard permissions={permissions} />;
 }

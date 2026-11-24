@@ -5,19 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Camera, CameraOff, ImageUp, PackagePlus, ScanLine, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
+import { createQRCodeDetector } from "@/lib/barcode-detector";
 import { api, getApi, getApiError } from "@/lib/api";
 
 type Direction = "in" | "out";
 type Product = { id: number; variantId: number | null; variantName: string | null; barcode: string; branchId: number; branch: string; status: string };
-type ScanResult = { rawValue: string };
-type Detector = { detect(source: HTMLVideoElement | ImageBitmap): Promise<ScanResult[]> };
-
-declare global {
-  interface Window {
-    BarcodeDetector?: new (options?: { formats: string[] }) => Detector;
-  }
-}
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
@@ -92,8 +84,8 @@ export function WarehouseMovementForm({ direction }: { direction: Direction }) {
 
   async function startCamera() {
     setCameraError("");
-    const BarcodeDetectorConstructor = window.BarcodeDetector;
-    if (!BarcodeDetectorConstructor) {
+    const detector = createQRCodeDetector();
+    if (!detector) {
       setCameraError("Pemindaian kamera tidak didukung di browser ini. Gunakan scanner QR atau ketik kode barcode.");
       return;
     }
@@ -104,7 +96,6 @@ export function WarehouseMovementForm({ direction }: { direction: Direction }) {
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
       }
-      const detector = new BarcodeDetectorConstructor({ formats: ["qr_code"] });
       setCameraOn(true);
       scanTimerRef.current = window.setInterval(() => {
         const video = videoRef.current;
@@ -127,8 +118,8 @@ export function WarehouseMovementForm({ direction }: { direction: Direction }) {
   async function scanGalleryImage(file: File | undefined) {
     if (!file) return;
     setCameraError("");
-    const BarcodeDetectorConstructor = window.BarcodeDetector;
-    if (!BarcodeDetectorConstructor) {
+    const detector = createQRCodeDetector();
+    if (!detector) {
       setCameraError("Pembacaan QR dari gambar tidak didukung di browser ini. Gunakan scanner kamera atau masukkan kode barcode secara manual.");
       return;
     }
@@ -136,7 +127,6 @@ export function WarehouseMovementForm({ direction }: { direction: Direction }) {
     let image: ImageBitmap | null = null;
     try {
       image = await createImageBitmap(file);
-      const detector = new BarcodeDetectorConstructor({ formats: ["qr_code"] });
       const results = await detector.detect(image);
       const result = results.find((item) => item.rawValue.trim());
       if (!result) {

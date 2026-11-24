@@ -53,6 +53,6 @@ async function ZoneDetailContent({ params }: ZoneDetailPageProps) {
 }
 
 async function AuthorizedZoneDetail({ zoneId }: { zoneId: number }) {
-  await requireFeatureAccess("stores");
+  await requireFeatureAccess("zonas");
   return <ZoneDetail zoneId={zoneId} />;
 }

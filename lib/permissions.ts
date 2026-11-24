@@ -1,10 +1,19 @@
 export const FEATURE_KEYS = [
   "overview",
-  "inventory",
-  "sales",
+  "store_inventory",
+  "warehouse_inventory",
+  "variants",
+  "products",
+  "generate_product",
+  "print_product_barcodes",
+  "branchs",
+  "zonas",
   "stores",
+  "store_visit",
+  "print_store_barcodes",
   "users",
-  "activity",
+  "roles",
+  "activity_logs",
 ] as const;
 
 export type FeatureKey = (typeof FEATURE_KEYS)[number];

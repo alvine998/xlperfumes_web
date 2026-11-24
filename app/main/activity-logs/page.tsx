@@ -33,6 +33,6 @@ export default function ActivityLogsPage() {
 }
 
 async function AuthorizedActivityLogs() {
-  await requireFeatureAccess("activity");
+  await requireFeatureAccess("activity_logs");
   return <ActivityLogs />;
 }
