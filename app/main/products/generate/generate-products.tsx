@@ -60,7 +60,9 @@ export function GenerateProducts() {
     let active = true;
     getAllApiPages("/products/branches", "branches", isBranch)
       .then((rows) => {
-        if (active) setBranches(rows);
+        if (!active) return;
+        setBranches(rows);
+        if (rows.length === 1 && rows[0]) setBranchId(String(rows[0].id));
       })
       .catch((cause: unknown) => {
         if (active) setBranchesError(getApiError(cause));

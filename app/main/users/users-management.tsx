@@ -25,8 +25,9 @@ import { DataTable } from "@/components/ui/data-table";
 import { ApiPagination } from "@/components/ui/api-pagination";
 import { useDebounce } from "@/hooks/use-debounce";
 import { getApi, getApiError, api } from "@/lib/api";
+import { isBranch, type Branch } from "@/lib/branches";
 import { isUser, USER_ROLES, type User, type UserRole } from "@/lib/users";
-import { isApiPagination, type ApiPagination as ApiPaginationState } from "@/lib/pagination";
+import { getAllApiPages, isApiPagination, type ApiPagination as ApiPaginationState } from "@/lib/pagination";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -68,6 +69,8 @@ function formatCreatedAt(value: string) {
 
 export function UsersManagement() {
   const [users, setUsers] = useState<User[]>([]);
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [currentUserBranchId, setCurrentUserBranchId] = useState<number | null>(null);
   const [pagination, setPagination] = useState<ApiPaginationState>({ page: 1, limit: 50, total: 0, totalPages: 0 });
   const [pageSize, setPageSize] = useState(50);
   const [page, setPage] = useState(1);
@@ -82,6 +85,26 @@ export function UsersManagement() {
   const [requestError, setRequestError] = useState<{ key: string; message: string } | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const debouncedSearch = useDebounce(search);
+
+  useEffect(() => {
+    let isCurrent = true;
+    getAllApiPages("/branches", "branches", isBranch)
+      .then((rows) => { if (isCurrent) setBranches(rows); })
+      .catch((cause: unknown) => { if (isCurrent) toast.error(getApiError(cause)); });
+    return () => { isCurrent = false; };
+  }, []);
+
+  useEffect(() => {
+    let isCurrent = true;
+    getApi("/auth/me")
+      .then(({ data }) => {
+        const user = isRecord(data) ? data.user : null;
+        if (!isUser(user)) throw new Error("The API returned an invalid user profile.");
+        if (isCurrent) setCurrentUserBranchId(user.branchId);
+      })
+      .catch((cause: unknown) => { if (isCurrent) toast.error(getApiError(cause)); });
+    return () => { isCurrent = false; };
+  }, []);
 
   const params = new URLSearchParams({ page: String(page), limit: String(pageSize) });
   if (debouncedSearch.trim()) params.set("search", debouncedSearch.trim());
@@ -184,11 +207,16 @@ export function UsersManagement() {
     const username = String(formData.get("username") ?? "").trim();
     const password = String(formData.get("password") ?? "");
     const role = String(formData.get("role") ?? "");
+    const selectedBranchId = String(formData.get("branchId") ?? "");
     if (!username || !USER_ROLES.some((candidate) => candidate === role))
       return;
     if ((!editingUser || password) && password.length < 8) return;
 
-    const body: Record<string, unknown> = { username, role };
+    const body: Record<string, unknown> = {
+      username,
+      role,
+      branchId: selectedBranchId ? Number(selectedBranchId) : null,
+    };
     if (password) body.password = password;
     setIsSaving(true);
     try {
@@ -342,6 +370,11 @@ export function UsersManagement() {
                   {roleLabel(user.role)}
                 </span>
               ),
+            },
+            {
+              id: "branch",
+              header: "CABANG",
+              renderCell: (user) => user.branch ?? "Semua cabang",
             },
             {
               id: "status",
@@ -516,6 +549,25 @@ export function UsersManagement() {
                   </option>
                 ))}
               </select>
+            </label>
+            <label className="users-form-field">
+              <span>Cabang</span>
+              <select
+                name="branchId"
+                defaultValue={editingUser?.branchId?.toString() ?? currentUserBranchId?.toString() ?? ""}
+              >
+                {currentUserBranchId === null && <option value="">Semua cabang</option>}
+                {branches.map((branch) => (
+                  <option key={branch.id} value={branch.id}>
+                    {branch.name} — {branch.city}
+                  </option>
+                ))}
+              </select>
+              <small>
+                {currentUserBranchId === null
+                  ? "Kosongkan untuk memberi akses ke semua cabang."
+                  : "Akun ini dibatasi ke cabang yang ditetapkan."}
+              </small>
             </label>
           </div>
           <footer className="users-dialog-actions">

@@ -155,6 +155,7 @@ export function StoreStockManagement() {
         if (current) {
           setRows(data.stocks);
           setBranches(data.branches);
+          if (data.branches.length === 1 && data.branches[0]) setBranch(data.branches[0]);
           setPagination(data.pagination);
           setPage(data.pagination.page);
           setRequestError(null);
@@ -309,7 +310,7 @@ export function StoreStockManagement() {
                   setBranch(event.target.value);
                 }}
               >
-                <option value="all">Semua Cabang</option>
+                {branches.length !== 1 && <option value="all">Semua Cabang</option>}
                 {branches.map((item) => (
                   <option key={item} value={item}>
                     {item}

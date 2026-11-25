@@ -302,3 +302,19 @@
 @media (prefers-reduced-motion: reduce) {
   .stores-summary-card { transition: none; }
 }
+
+.stores-toolbar { flex-direction: column; align-items: flex-end; gap: 9px; }
+.stores-filter-row, .stores-export-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; }
+.stores-filter-row { justify-content: flex-end; }
+.stores-export-actions { justify-content: flex-end; }
+@media (max-width: 1180px) {
+  .stores-toolbar { align-items: flex-start; }
+  .stores-filter-row, .stores-export-actions { width: 100%; justify-content: flex-start; }
+}
+@media (max-width: 760px) {
+  .stores-filter-row { width: 100%; }
+  .stores-search { flex: 1 1 100%; }
+  .stores-select { flex: 1 1 140px; }
+  .stores-export-actions { flex-wrap: wrap; }
+  .stores-export-button { flex: 1 1 auto; }
+}

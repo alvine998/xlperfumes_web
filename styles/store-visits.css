@@ -81,12 +81,106 @@
 .store-visit-back:hover { text-decoration: underline; }
 .store-visit-back svg { width: 16px; height: 16px; }
 .store-visit-detail-card { max-width: 740px; }
+.store-visit-detail-stack { display: grid; gap: 20px; }
 .store-visit-detail-fields { margin-top: 4px; }
 .store-visit-detail-fields > div { grid-template-columns: 145px minmax(0, 1fr); }
 .store-visit-detail-state { display: grid; max-width: 740px; justify-items: start; gap: 10px; border: 1px solid #d8dbd3; border-radius: 14px; padding: 24px; color: #34363d; background: #fff; }
 .store-visit-detail-state p { margin: 0; color: #72747a; font-size: 13px; }
 .store-visit-detail-state .store-visit-continue { margin-top: 6px; }
 .store-visit-detail-state .store-visit-continue svg { transform: rotate(180deg); }
+.store-visit-stock-panel { padding: 0; }
+.store-visit-stock-heading { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 21px 23px; }
+.store-visit-stock-heading .store-visit-panel-heading { margin: 0; }
+.store-visit-stock-heading .store-visit-panel-heading p { margin: 5px 0 0; color: #626960; font-size: 12px; }
+.visit-stock-icon { color: #5745be; background: #efedff; }
+.store-visit-stock-total { display: inline-flex; min-height: 39px; align-items: center; gap: 7px; border: 1px solid #dedaf8; border-radius: 10px; padding: 0 12px; color: #5141a9; background: #f7f5ff; font-size: 11px; font-weight: 800; white-space: nowrap; }
+.store-visit-stock-total svg { width: 15px; height: 15px; }
+.store-visit-stock-state { height: 82px !important; padding: 18px !important; color: #61665f !important; text-align: center; }
+.store-visit-stock-state.is-error { color: #943b42 !important; }
+.store-visit-stock-section { border-top: 1px solid #e5e6e0; padding: 18px 23px 21px; }
+.store-visit-stock-section h3 { margin: 0; color: #30352f; font-size: 14px; font-weight: 750; }
+.store-visit-stock-section h3 span { display: inline-grid; min-width: 21px; height: 21px; place-items: center; border-radius: 12px; padding: 0 6px; color: #5141a9; background: #efedff; font-size: 10px; }
+.store-visit-stock-table-wrap { overflow-x: auto; margin-top: 12px; border: 1px solid #e3e5df; border-radius: 10px; }
+.store-visit-stock-table { width: 100%; min-width: 520px; border-collapse: collapse; background: #fff; text-align: left; }
+.store-visit-stock-table thead { background: #f5f7f4; }
+.store-visit-stock-table th { height: 40px; padding: 0 13px; color: #51574f; font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+.store-visit-stock-table td { min-height: 52px; border-top: 1px solid #eceee9; padding: 10px 13px; color: #3c423b; font-size: 12px; }
+.store-visit-stock-table td strong { color: #292f29; font-size: 12px; }
+.store-visit-stock-quantity { color: #137a69; font-size: 13px; font-weight: 800; }
+.store-visit-stock-subheading { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.store-visit-stock-subheading p { margin: 5px 0 0; color: #666c64; font-size: 11px; line-height: 1.5; }
+.store-visit-stock-scan-button, .store-visit-stock-scan-form button, .store-visit-stock-submit, .store-visit-product-action button { display: inline-flex; min-height: 38px; align-items: center; justify-content: center; gap: 7px; border: 1px solid #31675b; border-radius: 9px; padding: 0 12px; color: #fff; background: linear-gradient(140deg, #218d7e, #176e62); cursor: pointer; font: inherit; font-size: 11px; font-weight: 750; white-space: nowrap; }
+.store-visit-stock-scan-button svg, .store-visit-stock-submit svg { width: 15px; height: 15px; }
+.store-visit-stock-scan-button:disabled, .store-visit-stock-scan-form button:disabled, .store-visit-stock-submit:disabled, .store-visit-product-action button:disabled { cursor: wait; opacity: .55; }
+.store-visit-stock-scan-form { margin-top: 14px; }
+.store-visit-stock-scan-form > label { display: block; margin-bottom: 6px; color: #454b44; font-size: 11px; font-weight: 750; }
+.store-visit-stock-scan-form > div { display: flex; gap: 8px; }
+.store-visit-stock-scan-input { display: flex; min-width: 0; height: 40px; flex: 1; align-items: center; gap: 8px; border: 1px solid #d2d7d0; border-radius: 8px; padding: 0 10px; background: #fff; }
+.store-visit-stock-scan-input:focus-within { border-color: #258678; box-shadow: 0 0 0 3px #2586781b; }
+.store-visit-stock-scan-input svg { width: 15px; height: 15px; flex: 0 0 auto; color: #287c70; }
+.store-visit-stock-scan-input input { width: 100%; min-width: 0; border: 0; outline: 0; color: #303630; background: transparent; font: inherit; font-size: 12px; }
+.store-visit-stock-camera { display: none; width: min(100%, 500px); max-height: 300px; margin: 13px auto 0; border-radius: 10px; background: #202520; object-fit: cover; }
+.store-visit-stock-camera.is-active { display: block; }
+.store-visit-stock-camera-error { margin: 9px 0 0; color: #993c43; font-size: 11px; }
+.store-visit-stock-pending-heading { display: flex; justify-content: space-between; gap: 12px; margin-top: 16px; color: #3d443d; font-size: 11px; }
+.store-visit-stock-pending-heading span { color: #636b62; }
+.store-visit-stock-pending-list { display: grid; max-height: 180px; gap: 5px; overflow-y: auto; margin: 8px 0 0; padding: 0; list-style: none; }
+.store-visit-stock-pending-list li { display: flex; min-height: 38px; align-items: center; gap: 10px; border: 1px solid #e4e7e1; border-radius: 8px; padding: 5px 9px; }
+.store-visit-stock-pending-list code, .visit-products-table code { color: #4c5260; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; overflow-wrap: anywhere; }
+.store-visit-stock-pending-list code { flex: 1; }
+.store-visit-stock-pending-list button { display: inline-flex; min-height: 28px; align-items: center; gap: 5px; border: 1px solid #ebd9d6; border-radius: 7px; padding: 0 7px; color: #9b4c3f; background: #fff; cursor: pointer; font: inherit; font-size: 10px; font-weight: 700; }
+.store-visit-stock-pending-list button svg { width: 13px; height: 13px; }
+.store-visit-stock-submit { margin-top: 12px; }
+.store-visit-stock-status-form { margin-top: 14px; border: 1px solid #e0e5dd; border-radius: 10px; padding: 12px; background: #f9fbf8; }
+.store-visit-stock-status-form > label { display: block; margin-bottom: 7px; color: #454b44; font-size: 11px; font-weight: 750; }
+.store-visit-stock-status-form > div { display: flex; gap: 8px; }
+.store-visit-stock-status-form input, .store-visit-stock-status-form select { min-width: 0; min-height: 36px; border: 1px solid #d4d9d2; border-radius: 7px; padding: 0 9px; color: #333a33; background: #fff; font: inherit; font-size: 11px; }
+.store-visit-stock-status-form input { flex: 1; }
+.store-visit-stock-status-form small { display: block; margin-top: 7px; color: #646b63; font-size: 10px; line-height: 1.5; }
+.store-visit-stock-status-form button { display: inline-flex; min-height: 36px; flex: 0 0 auto; align-items: center; justify-content: center; border: 1px solid #5c5541; border-radius: 8px; padding: 0 11px; color: #fff; background: #686047; cursor: pointer; font: inherit; font-size: 10px; font-weight: 750; white-space: nowrap; }
+.store-visit-stock-status-form button:disabled { cursor: wait; opacity: .55; }
+.store-visit-product-status { display: inline-flex; min-height: 25px; align-items: center; border: 1px solid #d4eae2; border-radius: 16px; padding: 0 9px; color: #177567; background: #f0faf6; font-size: 10px; font-weight: 750; }
+.store-visit-product-action { display: flex; align-items: center; gap: 7px; }
+.store-visit-product-action select { min-height: 34px; border: 1px solid #d4d9d2; border-radius: 7px; padding: 0 8px; color: #333a33; background: #fff; font: inherit; font-size: 10px; }
+.store-visit-product-action button { min-height: 34px; padding: 0 10px; }
+.store-visit-stock-heading-actions { display: flex; align-items: center; justify-content: end; gap: 8px; flex-wrap: wrap; }
+.store-visit-stock-open-button { display: inline-flex; min-height: 39px; align-items: center; justify-content: center; gap: 7px; border: 1px solid #227a6c; border-radius: 9px; padding: 0 12px; color: #fff; background: linear-gradient(140deg, #218d7e, #176e62); cursor: pointer; font: inherit; font-size: 11px; font-weight: 750; white-space: nowrap; }
+.store-visit-stock-open-button svg { width: 15px; height: 15px; }
+.store-visit-stock-open-button.adjust { border-color: #4b4c8b; background: linear-gradient(140deg, #6963ba, #4c4a91); }
+.store-visit-stock-open-button:hover, .store-visit-stock-scan-button:hover, .store-visit-stock-submit:hover { filter: brightness(.96); }
+.store-visit-stock-modal-backdrop { position: fixed; z-index: 1100; inset: 0; display: grid; place-items: center; overflow-y: auto; padding: 18px; background: #17201db8; }
+.store-visit-stock-modal { display: flex; width: min(100%, 680px); max-height: calc(100vh - 36px); flex-direction: column; overflow: hidden; border: 1px solid #d9ded7; border-radius: 15px; color: #303630; background: #fff; }
+.stock-adjustment-modal { width: min(100%, 520px); }
+.store-visit-stock-modal > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; border-bottom: 1px solid #e4e7e1; padding: 20px 22px; }
+.store-visit-stock-modal > header h2 { margin: 5px 0; color: #2e342e; font-family: Georgia, serif; font-size: 23px; font-weight: 400; }
+.store-visit-stock-modal > header p { margin: 0; color: #626960; font-size: 12px; line-height: 1.5; }
+.store-visit-stock-modal-close { display: grid; width: 35px; height: 35px; flex: 0 0 auto; place-items: center; border: 1px solid #d9ded7; border-radius: 8px; color: #4e564e; background: #fff; cursor: pointer; }
+.store-visit-stock-modal-close svg { width: 17px; height: 17px; }
+.store-visit-stock-modal-close:disabled { cursor: wait; opacity: .55; }
+.store-visit-stock-modal-body { overflow-y: auto; padding: 18px 22px; }
+.store-visit-stock-modal-tools { display: flex; align-items: center; gap: 11px; }
+.store-visit-stock-modal-tools > span { color: #626960; font-size: 11px; line-height: 1.5; }
+.store-visit-stock-modal .store-visit-stock-scan-button { flex: 0 0 auto; }
+.store-visit-stock-modal .store-visit-stock-scan-form { margin-top: 17px; }
+.store-visit-stock-modal .store-visit-stock-pending-list { max-height: 210px; }
+.store-visit-stock-pending-list li.is-empty { justify-content: center; color: #687068; font-size: 11px; }
+.store-visit-stock-modal > footer, .store-visit-stock-modal form > footer { display: flex; align-items: center; justify-content: flex-end; gap: 8px; border-top: 1px solid #e4e7e1; padding: 13px 22px; }
+.store-visit-stock-modal .store-visit-stock-submit { margin: 0; }
+.store-visit-stock-modal-cancel { display: inline-flex; min-height: 38px; align-items: center; justify-content: center; border: 1px solid #d6dbd4; border-radius: 8px; padding: 0 14px; color: #485048; background: #fff; cursor: pointer; font: inherit; font-size: 11px; font-weight: 700; }
+.store-visit-stock-modal-cancel:disabled { cursor: wait; opacity: .55; }
+.stock-adjustment-body { display: grid; gap: 15px; }
+.store-visit-stock-modal-field { display: grid; gap: 6px; color: #424a42; font-size: 11px; font-weight: 750; }
+.store-visit-stock-modal-field select, .store-visit-stock-modal-field input { width: 100%; min-height: 42px; border: 1px solid #d4d9d2; border-radius: 8px; padding: 0 11px; color: #303630; background: #fff; font: inherit; font-size: 12px; }
+.store-visit-stock-modal-current { display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid #dce9e4; border-radius: 9px; padding: 12px; color: #56645a; background: #f5faf7; font-size: 11px; }
+.store-visit-stock-modal-current strong { color: #187565; font-size: 14px; }
+.store-visit-stock-direction { display: flex; gap: 8px; margin: 0; border: 0; padding: 0; }
+.store-visit-stock-direction legend { margin-bottom: 7px; color: #424a42; font-size: 11px; font-weight: 750; }
+.store-visit-stock-direction button { display: inline-flex; min-height: 39px; flex: 1; align-items: center; justify-content: center; gap: 6px; border: 1px solid #cfd8ce; border-radius: 8px; color: #4b5c4b; background: #fff; cursor: pointer; font: inherit; font-size: 11px; font-weight: 700; }
+.store-visit-stock-direction button svg { width: 15px; height: 15px; }
+.store-visit-stock-direction button.increase.is-selected { border-color: #258574; color: #176e62; background: #eef8f4; }
+.store-visit-stock-direction button.decrease.is-selected { border-color: #ba6656; color: #9f493c; background: #fff4f1; }
+.store-visit-stock-direction button:disabled { cursor: wait; opacity: .55; }
+.store-visit-stock-modal-hint { margin: -8px 0 0; color: #626960; font-size: 10px; line-height: 1.5; }
 
 @media (max-width: 1050px) {
   .store-visit-columns { gap: 14px; }
@@ -107,6 +201,22 @@
   .store-visit-information-footer p { max-width: none; }
   .store-visit-continue { width: 100%; }
   .store-visit-detail-fields > div { grid-template-columns: 105px minmax(0, 1fr); }
+  .store-visit-stock-heading { align-items: flex-start; flex-direction: column; padding: 18px 16px; }
+  .store-visit-stock-heading-actions { width: 100%; justify-content: stretch; }
+  .store-visit-stock-open-button { flex: 1 1 100%; }
+  .store-visit-stock-section { padding: 16px; }
+  .store-visit-stock-subheading { align-items: flex-start; flex-direction: column; }
+  .store-visit-stock-scan-button { width: 100%; }
+  .store-visit-stock-scan-form > div { align-items: stretch; flex-direction: column; }
+  .store-visit-stock-status-form > div { align-items: stretch; flex-direction: column; }
+  .store-visit-product-action { align-items: stretch; }
+  .store-visit-product-action select { flex: 1; }
+  .store-visit-stock-modal-backdrop { align-items: end; padding: 0; }
+  .store-visit-stock-modal, .stock-adjustment-modal { width: 100%; max-height: min(92vh, 760px); border-radius: 15px 15px 0 0; }
+  .store-visit-stock-modal > header, .store-visit-stock-modal-body { padding-right: 16px; padding-left: 16px; }
+  .store-visit-stock-modal > footer, .store-visit-stock-modal form > footer { padding-right: 16px; padding-left: 16px; }
+  .store-visit-stock-modal-tools { align-items: stretch; flex-direction: column; }
+  .store-visit-stock-direction { flex-direction: column; }
 }
 
 @media (max-width: 430px) {

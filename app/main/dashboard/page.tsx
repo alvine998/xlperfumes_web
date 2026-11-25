@@ -1,16 +1,19 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { notFound } from "next/navigation";
 import { MainSidebar } from "../main-sidebar";
-import { requireAnyFeatureAccess } from "@/lib/server-permissions";
+import { getCurrentUserContext } from "@/lib/server-permissions";
 import { MainContentLoading } from "../main-content-loading";
 import { AnalyticsDashboard } from "./analytics-dashboard";
+import { RoleDashboard } from "./role-dashboard";
 import { NotificationDropdown } from "./notification-dropdown";
 import { TodayLabel } from "./today-label";
 import { ProfileMenu } from "../profile-menu";
 import "../../../styles/dashboard.css";
+import "../../../styles/operational-dashboard.css";
 
 export const metadata: Metadata = {
-  title: "Ringkasan Statistik | XL Perfumes",
+  title: "Ringkasan Operasional | XL Perfumes",
   description:
     "Pantau status inventaris dan statistik varian terjual di seluruh cabang XL Perfumes.",
 };
@@ -41,6 +44,10 @@ export default function DashboardPage() {
 }
 
 async function AuthorizedDashboard() {
-  const permissions = await requireAnyFeatureAccess(["overview"]);
-  return <AnalyticsDashboard permissions={permissions} />;
+  const { permissions, role } = await getCurrentUserContext();
+  if (!permissions.overview) notFound();
+  if (role === "admin" || role === "owner") {
+    return <AnalyticsDashboard permissions={permissions} />;
+  }
+  return <RoleDashboard role={role} permissions={permissions} />;
 }

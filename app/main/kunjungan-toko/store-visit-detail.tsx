@@ -6,6 +6,7 @@ import { ArrowLeft, MapPin, Store as StoreIcon } from "lucide-react";
 import { DashboardFooter } from "@/components/layout/dashboard-footer";
 import { getAllApiPages } from "@/lib/pagination";
 import { isStore, type Store } from "@/lib/stores";
+import { StoreVisitStock } from "./store-visit-stock";
 
 type StoreVisitDetailProps = { storeId: string; storeName: string };
 
@@ -61,20 +62,23 @@ export function StoreVisitDetail({ storeId, storeName }: StoreVisitDetailProps) 
           <Link className="store-visit-continue" href="/main/kunjungan-toko">Pilih Toko <ArrowLeft aria-hidden="true" /></Link>
         </div>
       ) : store ? (
-        <section className="store-visit-panel store-visit-detail-card" aria-labelledby="store-visit-detail-store-title">
-          <header className="store-visit-panel-heading">
-            <span className="store-visit-icon information-icon"><StoreIcon aria-hidden="true" /></span>
-            <div>
-              <span className="dashboard-eyebrow">INFORMASI TOKO</span>
-              <h2 id="store-visit-detail-store-title">{store.name}</h2>
-            </div>
-          </header>
-          <dl className="store-visit-details store-visit-detail-fields">
-            <div><dt><StoreIcon aria-hidden="true" /> Cabang</dt><dd>{store.branch || "Belum terdaftar"}</dd></div>
-            <div><dt><MapPin aria-hidden="true" /> Zona</dt><dd>{store.zona || "Belum ditetapkan"}</dd></div>
-            <div className="address-row"><dt><MapPin aria-hidden="true" /> Alamat</dt><dd>{store.address || "Alamat belum tersedia"}</dd></div>
-          </dl>
-        </section>
+        <div className="store-visit-detail-stack">
+          <section className="store-visit-panel store-visit-detail-card" aria-labelledby="store-visit-detail-store-title">
+            <header className="store-visit-panel-heading">
+              <span className="store-visit-icon information-icon"><StoreIcon aria-hidden="true" /></span>
+              <div>
+                <span className="dashboard-eyebrow">INFORMASI TOKO</span>
+                <h2 id="store-visit-detail-store-title">{store.name}</h2>
+              </div>
+            </header>
+            <dl className="store-visit-details store-visit-detail-fields">
+              <div><dt><StoreIcon aria-hidden="true" /> Cabang</dt><dd>{store.branch || "Belum terdaftar"}</dd></div>
+              <div><dt><MapPin aria-hidden="true" /> Zona</dt><dd>{store.zona || "Belum ditetapkan"}</dd></div>
+              <div className="address-row"><dt><MapPin aria-hidden="true" /> Alamat</dt><dd>{store.address || "Alamat belum tersedia"}</dd></div>
+            </dl>
+          </section>
+          <StoreVisitStock storeId={store.id} />
+        </div>
       ) : null}
 
       <DashboardFooter section="DETAIL KUNJUNGAN TOKO" />

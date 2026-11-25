@@ -17,16 +17,18 @@ import {
   ShieldCheck,
   Store,
   Printer,
+  PackageCheck,
   Tags,
   UsersRound,
   type LucideIcon,
 } from "lucide-react";
 import { getApi } from "@/lib/api";
 import { isFeaturePermissions, type FeatureKey, type FeaturePermissions } from "@/lib/permissions";
+import { isUserRole, type UserRole } from "@/lib/users";
 
 const NAV_GROUPS: {
   label: string;
-  items: { href: string; label: string; feature: FeatureKey; Icon: LucideIcon }[];
+  items: { href: string; label: string; feature?: FeatureKey; roles?: readonly UserRole[]; Icon: LucideIcon }[];
 }[] = [
   {
     label: "RINGKASAN",
@@ -39,6 +41,7 @@ const NAV_GROUPS: {
     items: [
       { href: "/main/store-stock", label: "Stok Toko", feature: "store_inventory", Icon: Package },
       { href: "/main/warehouse-stock", label: "Stok Gudang", feature: "warehouse_inventory", Icon: Warehouse },
+      { href: "/main/ambil-barang", label: "Ambil Barang", roles: ["spg", "collecting"], Icon: PackageCheck },
       { href: "/main/variants", label: "Daftar Varian", feature: "variants", Icon: Tags },
       { href: "/main/products", label: "Daftar Produk", feature: "products", Icon: Clipboard },
       { href: "/main/products/generate", label: "Generate Produk", feature: "generate_product", Icon: PackagePlus },
@@ -80,12 +83,14 @@ export function MainSidebar() {
 function MainSidebarContent() {
   const pathname = usePathname();
   const [permissions, setPermissions] = useState<FeaturePermissions | null>(null);
+  const [role, setRole] = useState<UserRole | null>(null);
 
   useEffect(() => {
     let active = true;
     getApi("/auth/me").then(({ data }) => {
       if (!active || !isRecord(data) || !isRecord(data.user)) return;
       if (isFeaturePermissions(data.user.permissions)) setPermissions(data.user.permissions);
+      if (isUserRole(data.user.role)) setRole(data.user.role);
     }).catch(() => {
       if (active) setPermissions(null);
     });
@@ -100,7 +105,9 @@ function MainSidebarContent() {
       </Link>
       <nav className="dashboard-nav" aria-label="Fitur">
         {permissions ? NAV_GROUPS.map(({ label: groupLabel, items }) => {
-          const visibleItems = items.filter(({ feature }) => permissions[feature]);
+          const visibleItems = items.filter(({ feature, roles }) => roles
+            ? role !== null && roles.includes(role)
+            : feature !== undefined && permissions[feature]);
           if (visibleItems.length === 0) return null;
 
           return (

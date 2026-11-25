@@ -63,6 +63,9 @@ export function WarehouseStockManagement() {
         if (active) {
           setProducts(productRows);
           setBranches(branchRows);
+          if (!branchId && branchRows.length === 1 && branchRows[0]) {
+            setBranchId(String(branchRows[0].id));
+          }
           setRequestError(null);
         }
       })
@@ -117,7 +120,7 @@ export function WarehouseStockManagement() {
           <label className="warehouse-stock-filter">
             <span className="sr-only">Filter cabang</span>
             <select value={branchId} onChange={(event) => setBranchId(event.target.value)}>
-              <option value="">Semua Cabang</option>
+              {branches.length !== 1 && <option value="">Semua Cabang</option>}
               {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.name}</option>)}
             </select>
             <ChevronDown aria-hidden="true" />

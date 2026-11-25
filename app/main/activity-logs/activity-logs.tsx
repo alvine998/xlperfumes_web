@@ -112,6 +112,9 @@ export function ActivityLogs() {
         if (isRecord(data.filters) && isStringArray(data.filters.users) &&
           isStringArray(data.filters.branches) && isStringArray(data.filters.actions)) {
           setFilterOptions({ users: data.filters.users, branches: data.filters.branches, actions: data.filters.actions });
+          if (data.filters.branches.length === 1 && data.filters.branches[0]) {
+            setBranchFilter(data.filters.branches[0]);
+          }
         }
       })
       .catch((cause: unknown) => {
@@ -129,7 +132,7 @@ export function ActivityLogs() {
     setStartDate("");
     setEndDate("");
     setUserFilter("all");
-    setBranchFilter("all");
+    setBranchFilter(filterOptions.branches.length === 1 ? filterOptions.branches[0] ?? "all" : "all");
     setActionFilter("all");
   }
 
@@ -172,7 +175,7 @@ export function ActivityLogs() {
           <label className="activity-filter-field">
             <span>Cabang</span>
             <select value={branchFilter} onChange={(event) => { setPage(1); setBranchFilter(event.target.value); }}>
-              <option value="all">Semua cabang</option>
+              {filterOptions.branches.length !== 1 && <option value="all">Semua cabang</option>}
               {filterOptions.branches.map((branch) => <option key={branch} value={branch}>{branch}</option>)}
             </select>
           </label>

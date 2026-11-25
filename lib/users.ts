@@ -6,6 +6,8 @@ export type User = {
   id: number;
   username: string;
   role: UserRole;
+  branchId: number | null;
+  branch?: string | null;
   isActive: boolean;
   createdAt: string;
 };
@@ -22,6 +24,9 @@ export function isUser(value: unknown): value is User {
     typeof value.username === "string" &&
     "role" in value &&
     isUserRole(value.role) &&
+    "branchId" in value &&
+    (typeof value.branchId === "number" || value.branchId === null) &&
+    (!("branch" in value) || typeof value.branch === "string" || value.branch === null) &&
     "isActive" in value &&
     typeof value.isActive === "boolean" &&
     "createdAt" in value &&

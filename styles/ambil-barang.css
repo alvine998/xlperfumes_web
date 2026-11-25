@@ -1,0 +1,22 @@
+.warehouse-pickup-content .warehouse-stock-action.incoming {
+  border-color: #24788c;
+  background: linear-gradient(145deg, #3b9bb4, #24788c);
+  box-shadow: 4px 4px 9px #c0d9df;
+}
+
+.warehouse-pickup-content .warehouse-stock-action.incoming:hover {
+  background: linear-gradient(145deg, #318ba3, #1f697b);
+}
+
+.warehouse-pickup-content .warehouse-scan-input:focus-within {
+  outline-color: #2d8da1;
+}
+
+.warehouse-pickup-content .warehouse-scan-add {
+  border-color: #24788c;
+  color: #17677a;
+}
+
+.warehouse-pickup-content .warehouse-scan-add:hover {
+  background: #edf8fa;
+}

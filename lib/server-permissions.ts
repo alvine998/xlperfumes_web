@@ -5,6 +5,13 @@ import { notFound, redirect } from "next/navigation";
 import axios from "axios";
 import { api } from "@/lib/api";
 import { isFeaturePermissions, type FeatureKey, type FeaturePermissions } from "@/lib/permissions";
+import { isUserRole, type UserRole } from "@/lib/users";
+
+export type CurrentUserContext = {
+  role: UserRole;
+  branchId: number | null;
+  permissions: FeaturePermissions;
+};
 
 const loadPermissionsForToken = async (token: string): Promise<FeaturePermissions> => {
   "use cache";
@@ -42,6 +49,44 @@ export async function getCurrentPermissions(): Promise<FeaturePermissions> {
 
 export async function requireFeatureAccess(feature: FeatureKey): Promise<FeaturePermissions> {
   return requireAnyFeatureAccess([feature]);
+}
+
+export async function requireRoleAccess(roles: readonly UserRole[]): Promise<UserRole> {
+  const { role } = await getCurrentUserContext();
+  if (!roles.includes(role)) notFound();
+  return role;
+}
+
+export async function getCurrentUserContext(): Promise<CurrentUserContext> {
+  const token = (await cookies()).get("xlperfumes_token")?.value;
+  if (!token) redirect("/");
+
+  try {
+    const { data } = await api.get<unknown>("/auth/me", {
+      headers: { Cookie: `xlperfumes_token=${token}` },
+    });
+    if (!isRecord(data) || !isRecord(data.user) ||
+      !isUserRole(data.user.role) ||
+      (typeof data.user.branchId !== "number" && data.user.branchId !== null) ||
+      !isFeaturePermissions(data.user.permissions)) {
+      throw new Error("The API returned an invalid current user context.");
+    }
+    return {
+      role: data.user.role,
+      branchId: data.user.branchId,
+      permissions: data.user.permissions,
+    };
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error) && error.response?.status === 401) redirect("/");
+    if (axios.isAxiosError(error) && error.response?.status === 403) notFound();
+    if (axios.isAxiosError(error)) {
+      const status = error.response?.status;
+      throw new Error(status
+        ? `Unable to load the current user role from the API (HTTP ${status}).`
+        : `Unable to connect to the API while loading the current user role (${error.code ?? "network error"}).`);
+    }
+    throw error;
+  }
 }
 
 export async function requireAnyFeatureAccess(features: FeatureKey[]): Promise<FeaturePermissions> {

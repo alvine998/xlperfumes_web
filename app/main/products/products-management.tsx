@@ -88,7 +88,11 @@ export function ProductsManagement() {
   useEffect(() => {
     let active = true;
     getAllApiPages("/products/branches", "branches", isBranch)
-      .then((rows) => { if (active) setBranches(rows); })
+      .then((rows) => {
+        if (!active) return;
+        setBranches(rows);
+        if (rows.length === 1 && rows[0]) setBranchId(String(rows[0].id));
+      })
       .catch(() => undefined);
     return () => { active = false; };
   }, []);
@@ -118,7 +122,8 @@ export function ProductsManagement() {
 
   function clearFilters() {
     setPage(1);
-    setStatus(""); setSearch(""); setDate(""); setBranchId("");
+    setStatus(""); setSearch(""); setDate("");
+    setBranchId(branches.length === 1 && branches[0] ? String(branches[0].id) : "");
   }
 
   async function openDetail(product: Product, targetPage = 1, targetLimit = detailPageSize) {
@@ -168,7 +173,7 @@ export function ProductsManagement() {
             <label className="products-search"><Search aria-hidden="true" /><span className="sr-only">Cari nama varian atau kode QR</span><input value={search} onChange={(event) => { setPage(1); setSearch(event.target.value); }} placeholder="Nama varian / kode QR" /></label>
             <label className="products-filter-field"><span className="sr-only">Filter status</span><select value={status} onChange={(event) => { setPage(1); setStatus(event.target.value); }}><option value="">Semua Status</option>{STATUS_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
             <label className="products-filter-field products-date"><CalendarDays aria-hidden="true" /><span className="sr-only">Filter tanggal update</span><input type="date" value={date} onChange={(event) => { setPage(1); setDate(event.target.value); }} /></label>
-            <label className="products-filter-field"><span className="sr-only">Filter cabang</span><select value={branchId} onChange={(event) => { setPage(1); setBranchId(event.target.value); }}><option value="">Semua Cabang</option>{branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.name}</option>)}</select></label>
+            <label className="products-filter-field"><span className="sr-only">Filter cabang</span><select value={branchId} onChange={(event) => { setPage(1); setBranchId(event.target.value); }}>{branches.length !== 1 && <option value="">Semua Cabang</option>}{branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.name}</option>)}</select></label>
             <button className="products-clear-button" type="button" onClick={clearFilters}><RotateCcw aria-hidden="true" /> Bersihkan Filter</button>
           </div>
         </header>

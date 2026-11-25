@@ -26,6 +26,7 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { api, getApi, getApiError } from "@/lib/api";
 import { isBranch, type Branch } from "@/lib/branches";
 import { isStore, type Store } from "@/lib/stores";
+import { isUser } from "@/lib/users";
 import { getAllApiPages, isApiPagination, type ApiPagination as ApiPaginationState } from "@/lib/pagination";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -62,6 +63,7 @@ export function StoresManagement() {
   const [pageSize, setPageSize] = useState(50);
   const [page, setPage] = useState(1);
   const [reloadKey, setReloadKey] = useState(0);
+  const [canManageStores, setCanManageStores] = useState(false);
   const [search, setSearch] = useState("");
   const [branchFilter, setBranchFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("newest");
@@ -86,8 +88,26 @@ export function StoresManagement() {
   useEffect(() => {
     let isCurrent = true;
     getAllApiPages("/branches", "branches", isBranch)
-      .then((rows) => { if (isCurrent) setAvailableBranches(rows); })
+      .then((rows) => {
+        if (!isCurrent) return;
+        setAvailableBranches(rows);
+        if (rows.length === 1 && rows[0]) setBranchFilter(rows[0].name);
+      })
       .catch((cause: unknown) => { if (isCurrent) setLookupError(getApiError(cause)); });
+    return () => { isCurrent = false; };
+  }, []);
+
+  useEffect(() => {
+    let isCurrent = true;
+    getApi("/auth/me")
+      .then(({ data }) => {
+        const user = isRecord(data) ? data.user : null;
+        if (!isUser(user)) throw new Error("Profil akun tidak valid.");
+        if (isCurrent) setCanManageStores(user.role === "owner" || user.role === "admin");
+      })
+      .catch((cause: unknown) => {
+        if (isCurrent) toast.error(getApiError(cause));
+      });
     return () => { isCurrent = false; };
   }, []);
 
@@ -141,11 +161,13 @@ export function StoresManagement() {
   const filteredStores = stores;
 
   function openCreate() {
+    if (!canManageStores) return;
     setEditingStore(null);
     dialogRef.current?.showModal();
   }
 
   function openEdit(store: Store) {
+    if (!canManageStores) return;
     setEditingStore(store);
     dialogRef.current?.showModal();
   }
@@ -182,6 +204,7 @@ export function StoresManagement() {
 
   async function handleSave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!canManageStores) return;
     const form = event.currentTarget;
     const data = new FormData(form);
     const selectedBranchId = String(data.get("branchId") ?? "");
@@ -224,6 +247,7 @@ export function StoresManagement() {
   }
 
   async function handleDelete(store: Store) {
+    if (!canManageStores) return;
     if (
       !window.confirm(
         `Hapus toko ${store.name}? Tindakan ini tidak dapat dibatalkan.`,
@@ -332,14 +356,16 @@ export function StoresManagement() {
           <span className="report-updated">
             <span className="live-indicator" /> {pagination.total} TOKO TERDAFTAR
           </span>
-          <button
-            className="stores-primary-button"
-            type="button"
-            onClick={openCreate}
-          >
-            <Plus size={16} aria-hidden="true" />
-            Tambah toko
-          </button>
+          {canManageStores && (
+            <button
+              className="stores-primary-button"
+              type="button"
+              onClick={openCreate}
+            >
+              <Plus size={16} aria-hidden="true" />
+              Tambah toko
+            </button>
+          )}
         </div>
       </section>
 
@@ -385,56 +411,60 @@ export function StoresManagement() {
             <p>QR code toko dibuat otomatis dari nama toko.</p>
           </div>
           <div className="stores-toolbar">
-            <label className="stores-search">
-              <span className="sr-only">Cari berdasarkan nama toko</span>
-              <Search aria-hidden="true" />
-              <input
-                type="search"
-                value={search}
-                onChange={(event) => { setPage(1); setSearch(event.target.value); }}
-                placeholder="Cari nama toko"
-              />
-            </label>
-            <label className="stores-select">
-              <span className="sr-only">Urutkan tanggal</span>
-              <select
-                value={sortOrder}
-                onChange={(event) => { setPage(1); setSortOrder(event.target.value); }}
+            <div className="stores-filter-row">
+              <label className="stores-search">
+                <span className="sr-only">Cari berdasarkan nama toko</span>
+                <Search aria-hidden="true" />
+                <input
+                  type="search"
+                  value={search}
+                  onChange={(event) => { setPage(1); setSearch(event.target.value); }}
+                  placeholder="Cari nama toko"
+                />
+              </label>
+              <label className="stores-select">
+                <span className="sr-only">Urutkan tanggal</span>
+                <select
+                  value={sortOrder}
+                  onChange={(event) => { setPage(1); setSortOrder(event.target.value); }}
+                >
+                  <option value="newest">Terbaru</option>
+                  <option value="oldest">Terlama</option>
+                </select>
+              </label>
+              <label className="stores-select">
+                <span className="sr-only">Filter cabang</span>
+                <select
+                  value={branchFilter}
+                  onChange={(event) => { setPage(1); setBranchFilter(event.target.value); }}
+                >
+                  {branches.length !== 1 && <option value="all">Semua cabang</option>}
+                  {branches.map((branch) => (
+                    <option key={branch} value={branch}>
+                      {branch}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <div className="stores-export-actions">
+              <button
+                className="stores-export-button"
+                type="button"
+                onClick={exportPdf}
               >
-                <option value="newest">Terbaru</option>
-                <option value="oldest">Terlama</option>
-              </select>
-            </label>
-            <label className="stores-select">
-              <span className="sr-only">Filter cabang</span>
-              <select
-                value={branchFilter}
-                onChange={(event) => { setPage(1); setBranchFilter(event.target.value); }}
+                <FileText size={15} aria-hidden="true" />
+                Export PDF
+              </button>
+              <button
+                className="stores-export-button"
+                type="button"
+                onClick={exportExcel}
               >
-                <option value="all">Semua cabang</option>
-                {branches.map((branch) => (
-                  <option key={branch} value={branch}>
-                    {branch}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button
-              className="stores-export-button"
-              type="button"
-              onClick={exportPdf}
-            >
-              <FileText size={15} aria-hidden="true" />
-              Export PDF
-            </button>
-            <button
-              className="stores-export-button"
-              type="button"
-              onClick={exportExcel}
-            >
-              <FileSpreadsheet size={15} aria-hidden="true" />
-              Export Excel
-            </button>
+                <FileSpreadsheet size={15} aria-hidden="true" />
+                Export Excel
+              </button>
+            </div>
           </div>
         </header>
         {error && (
@@ -511,10 +541,10 @@ export function StoresManagement() {
               className: "store-date",
               renderCell: (store) => dateLabel(store.createdAt),
             },
-            {
+            ...(canManageStores ? [{
               id: "actions",
               header: <span className="sr-only">Aksi</span>,
-              renderCell: (store) => (
+              renderCell: (store: Store) => (
                 <div className="store-row-actions">
                   <button
                     className="store-row-action"
@@ -534,7 +564,7 @@ export function StoresManagement() {
                   </button>
                 </div>
               ),
-            },
+            }] : []),
           ]}
           rows={filteredStores}
           getRowKey={(store) => store.id}
@@ -580,7 +610,7 @@ export function StoresManagement() {
       </section>
       <DashboardFooter section="DAFTAR TOKO" />
 
-      <Modal
+      {canManageStores && <Modal
         className="stores-dialog"
         ref={dialogRef}
         aria-labelledby="store-form-title"
@@ -625,7 +655,7 @@ export function StoresManagement() {
               <span>Cabang</span>
               <select
                 name="branchId"
-                defaultValue={editingStore?.branchId ?? ""}
+                defaultValue={editingStore?.branchId ?? (availableBranches.length === 1 ? availableBranches[0]?.id ?? "" : "")}
                 required={!editingStore || Boolean(editingStore.branchId)}
               >
                 <option value="">
@@ -726,7 +756,7 @@ export function StoresManagement() {
             otomatis berdasarkan Nama Toko.
           </p>
         </form>
-      </Modal>
+      </Modal>}
     </div>
   );
 }
