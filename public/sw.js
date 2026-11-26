@@ -1,4 +1,4 @@
-const CACHE_NAME = "xlperfumes-static-v1";
+const CACHE_NAME = "xlperfumes-static-v2";
 const OFFLINE_URL = "/offline.html";
 
 self.addEventListener("install", (event) => {
@@ -27,7 +27,8 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  if (!url.pathname.startsWith("/_next/static/") && !url.pathname.startsWith("/icons/")) return;
+  // Next.js assets must follow the HTML version served by the current deployment.
+  if (!url.pathname.startsWith("/icons/")) return;
   event.respondWith(caches.match(request).then((cached) => cached || fetch(request).then((response) => {
     if (response.ok) {
       const copy = response.clone();

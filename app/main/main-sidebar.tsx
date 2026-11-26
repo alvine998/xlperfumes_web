@@ -135,7 +135,7 @@ function MainSidebarContent() {
   const isExtraActive = !primaryItems.some(({ href }) => href === activeHref);
 
   return (
-    <aside className="dashboard-sidebar mobile-sidebar" aria-label="Navigasi utama">
+    <aside className="dashboard-sidebar" aria-label="Navigasi utama">
       <Link className="dashboard-brand" href="/" aria-label="XL Perfumes beranda">
         <span className="dashboard-brand-mark">XL</span>
         <span>PERFUMES</span>
@@ -183,7 +183,7 @@ function MainSidebarContent() {
 
 function MainSidebarLoading() {
   return (
-    <aside className="dashboard-sidebar mobile-sidebar" aria-label="Navigasi utama">
+    <aside className="dashboard-sidebar" aria-label="Navigasi utama">
       <Link className="dashboard-brand" href="/" aria-label="XL Perfumes beranda">
         <span className="dashboard-brand-mark">XL</span>
         <span>PERFUMES</span>
