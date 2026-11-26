@@ -222,7 +222,7 @@ export function WarehouseMovementForm({ direction, pickupDestination }: { direct
             <thead><tr><th>Kode Barcode</th><th>Varian</th><th>Aksi</th></tr></thead>
             <tbody>
               {items.length === 0 ? <tr><td className="warehouse-stock-state" colSpan={3}>Belum ada barang di daftar.</td></tr> : items.map((item) => (
-                <tr key={item.barcode}><td className="warehouse-movement-barcode">{item.barcode}</td><td><strong className="warehouse-stock-name">{item.variantName ?? "Varian belum dipetakan"}</strong><small className="warehouse-movement-branch">{item.branch}</small></td><td><button className="warehouse-remove-item" type="button" aria-label={`${isIncoming ? "Hapus" : "Hapus dari daftar"} ${item.variantName ?? "produk"} ${item.barcode}`} onClick={() => setItems((current) => current.filter((candidate) => candidate.barcode !== item.barcode))}><Trash2 aria-hidden="true" /> {isIncoming ? "Hapus" : "Hapus dari daftar"}</button></td></tr>
+                <tr key={item.barcode}><td className="warehouse-movement-barcode" data-label="Kode Barcode">{item.barcode}</td><td data-label="Varian"><strong className="warehouse-stock-name">{item.variantName ?? "Varian belum dipetakan"}</strong><small className="warehouse-movement-branch">{item.branch}</small></td><td className="warehouse-movement-item-action"><button className="warehouse-remove-item" type="button" aria-label={`${isIncoming ? "Hapus" : "Hapus dari daftar"} ${item.variantName ?? "produk"} ${item.barcode}`} onClick={() => setItems((current) => current.filter((candidate) => candidate.barcode !== item.barcode))}><Trash2 aria-hidden="true" /> {isIncoming ? "Hapus" : "Hapus dari daftar"}</button></td></tr>
               ))}
             </tbody>
           </table>

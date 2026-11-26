@@ -20,3 +20,26 @@
 .warehouse-pickup-content .warehouse-scan-add:hover {
   background: #edf8fa;
 }
+
+@media (max-width: 760px) {
+  .warehouse-pickup-content { padding-top: 20px; }
+  .warehouse-pickup-content .movement-panel { overflow: hidden; border-radius: 14px; }
+  .warehouse-pickup-content .warehouse-stock-panel-header h2 { font-family: inherit; font-size: 21px; font-weight: 750; }
+  .warehouse-pickup-content .warehouse-scan-source-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
+  .warehouse-pickup-content .warehouse-scan-source-actions .warehouse-stock-action { min-width: 0; min-height: 48px; padding: 8px; font-size: 12px; white-space: normal; }
+  .warehouse-pickup-content .warehouse-scan-input { height: 48px; }
+  .warehouse-pickup-content .warehouse-scan-input input { font-size: 16px; }
+  .warehouse-pickup-content .warehouse-scan-add { min-height: 48px; font-size: 14px; }
+  .warehouse-pickup-content .warehouse-stock-table-wrap { overflow: visible; padding: 12px; }
+  .warehouse-pickup-content .movement-table { display: block; width: 100%; min-width: 0; }
+  .warehouse-pickup-content .movement-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .warehouse-pickup-content .movement-table tbody { display: grid; gap: 10px; }
+  .warehouse-pickup-content .movement-table tr { display: grid; gap: 8px; border: 1px solid #e0e5e3; border-radius: 12px; padding: 13px; background: #fff; }
+  .warehouse-pickup-content .movement-table td { display: grid; height: auto; gap: 2px; border: 0; padding: 0 !important; overflow-wrap: anywhere; }
+  .warehouse-pickup-content .movement-table td[data-label]::before { color: #5e6571; font: 700 11px var(--font-geist-sans), sans-serif; content: attr(data-label); }
+  .warehouse-pickup-content .movement-table .warehouse-stock-state { min-height: 70px; align-content: center; }
+  .warehouse-pickup-content .warehouse-movement-item-action { justify-items: stretch; }
+  .warehouse-pickup-content .warehouse-remove-item { min-height: 44px; }
+  .warehouse-pickup-content .warehouse-movement-footer { position: sticky; bottom: calc(68px + env(safe-area-inset-bottom)); z-index: 1; background: #fff; }
+  .warehouse-pickup-content .warehouse-movement-footer .warehouse-stock-action { min-height: 48px; font-size: 14px; }
+}

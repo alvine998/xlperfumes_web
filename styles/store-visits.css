@@ -227,3 +227,13 @@
   .store-visit-step > span:not(.store-visit-step-line) { gap: 5px; }
   .store-visit-step b { width: 25px; height: 25px; }
 }
+
+@media (max-width: 760px) {
+  .store-visit-content { padding-top: 20px; }
+  .store-visit-button, .store-visit-continue, .store-visit-results li > button { min-height: 48px; }
+  .store-visit-search-box { height: 48px; }
+  .store-visit-search-box input, .store-visit-stock-scan-form input, .store-visit-stock-status-form input, .store-visit-stock-modal-field input, .store-visit-stock-modal-field select { font-size: 16px; }
+  .store-visit-stock-modal-backdrop { padding-bottom: env(safe-area-inset-bottom); }
+  .store-visit-stock-modal { max-height: calc(100dvh - env(safe-area-inset-bottom) - 12px); }
+  .store-visit-stock-modal-close, .store-visit-stock-modal-cancel, .store-visit-stock-modal .store-visit-stock-submit { min-height: 44px; }
+}

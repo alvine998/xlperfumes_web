@@ -1,0 +1,112 @@
+.route-planner-content { --route-card: #fff; position: relative; z-index: 0; isolation: isolate; }
+.route-planner-heading { align-items: center; gap: 20px; }
+.route-location-button,
+.route-stop-list a {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid #344b39;
+  border-radius: 11px;
+  padding: 0 15px;
+  color: #fff;
+  background: #355b42;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+.route-location-button svg,
+.route-stop-list a svg { width: 17px; height: 17px; }
+.route-location-button:disabled { cursor: wait; opacity: .65; }
+.route-planner-error,
+.route-planner-state,
+.route-planner-empty {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid #e4e9e1;
+  border-radius: 12px;
+  padding: 14px 16px;
+  color: #5d6258;
+  background: #fff;
+}
+.route-planner-error { border-color: #e9c9c2; color: #82473e; background: #fff8f6; }
+.route-zone-picker { display: flex; gap: 11px; overflow-x: auto; margin: 0 0 18px; padding: 2px 2px 10px; }
+.route-zone-option {
+  display: flex;
+  min-width: 210px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border: 1px solid #e1e7df;
+  border-radius: 13px;
+  padding: 12px 14px;
+  color: #3c4339;
+  background: #fff;
+  box-shadow: 4px 4px 10px #d9ded8, -4px -4px 10px #ffffffc9;
+  text-align: left;
+  cursor: pointer;
+}
+.route-zone-option.is-active { border-color: #498057; background: #f1f8f0; }
+.route-zone-option span { display: grid; gap: 4px; }
+.route-zone-option strong { font-size: 14px; }
+.route-zone-option small { color: #777d72; font-size: 12px; }
+.route-zone-option b { color: #547b59; font-size: 12px; white-space: nowrap; }
+.route-zone-card { overflow: hidden; border: 1px solid #edf0eb; border-radius: 17px; background: #fff; box-shadow: 7px 7px 18px #d9ded8, -7px -7px 18px #ffffffc9; }
+.route-planner-content .zones-osm-map { position: relative; z-index: 0; isolation: isolate; }
+.route-zone-heading { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 20px 22px; }
+.route-zone-heading h2 { margin: 6px 0 4px; color: #31382f; font: 400 26px Georgia, "Times New Roman", serif; }
+.route-zone-heading p { margin: 0; color: #777d72; font-size: 14px; }
+.route-start-badge { display: inline-flex; align-items: center; gap: 7px; border-radius: 999px; padding: 8px 12px; color: #315d3d; background: #eef7ef; font-size: 13px; font-weight: 700; white-space: nowrap; }
+.route-start-badge svg { width: 16px; height: 16px; }
+.route-stop-list { display: grid; gap: 0; margin: 0; padding: 0 22px 16px; list-style: none; }
+.route-stop-list li { display: grid; grid-template-columns: 24px 30px minmax(160px, 1fr) auto auto auto; align-items: center; gap: 10px; min-height: 76px; border-top: 1px solid #e9ede7; transition: background-color .15s ease; }
+.route-stop-list li.is-dragging { background: #f0f7ef; }
+.route-stop-drag-handle,
+.route-stop-order-actions button { display: grid; width: 30px; height: 34px; place-items: center; border: 1px solid #dce5dc; border-radius: 9px; color: #53604b; background: #fff; cursor: grab; }
+.route-stop-drag-handle { width: 24px; touch-action: none; }
+.route-stop-drag-handle svg { width: 17px; height: 17px; }
+.route-stop-order-actions { display: flex; gap: 4px; }
+.route-stop-order-actions button { width: 29px; height: 30px; cursor: pointer; }
+.route-stop-order-actions button svg { width: 15px; height: 15px; }
+.route-stop-order-actions button:disabled { cursor: default; opacity: .4; }
+.route-stop-drag-handle:focus-visible,
+.route-stop-order-actions button:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.route-stop-number { display: grid; width: 30px; height: 30px; place-items: center; border-radius: 50%; color: #fff; background: #547b59; font-size: 13px; font-weight: 800; }
+.route-stop-copy { display: grid; gap: 5px; min-width: 0; }
+.route-stop-copy strong { overflow: hidden; color: #343a32; font-size: 15px; text-overflow: ellipsis; white-space: nowrap; }
+.route-stop-copy small { overflow: hidden; color: #7c8178; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.route-stop-flags { display: flex; flex-wrap: wrap; gap: 5px; }
+.route-stop-copy .route-stop-flag { width: fit-content; max-width: 100%; border: 1px solid #e4e8e1; border-radius: 999px; padding: 3px 7px; color: #777d73; background: #f8f9f7; font-size: 10px; text-overflow: ellipsis; }
+.route-stop-copy .route-stop-flag.is-recorded { border-color: #d4e6d5; color: #386544; background: #eef7ee; }
+.route-stop-distance { color: #737a6e; font-size: 12px; white-space: nowrap; }
+.route-stop-actions { display: flex; align-items: center; gap: 7px; }
+.route-stop-list a { min-height: 35px; border-color: #dce5dc; padding: 0 10px; color: #405640; background: #f6faf5; font-size: 12px; }
+.route-stop-list a:hover { background: #eaf3e8; }
+.route-stop-list .route-visit-link { border-color: #3e6947; color: #fff; background: #456e4e; }
+.route-stop-list .route-visit-link:hover { background: #355c3e; }
+.zones-map-start-marker { border: 0; color: #fff; background: transparent; }
+.zones-map-start-marker span { display: grid; width: 48px; height: 30px; place-items: center; border: 2px solid #fff; border-radius: 15px; background: #df7a2c; box-shadow: 0 2px 8px #3337; font: 700 11px Arial, sans-serif; }
+
+@media (max-width: 760px) {
+  .dashboard-shell:has(.route-planner-content) .dashboard-sidebar { z-index: 1100; }
+  .route-planner-heading { align-items: stretch; flex-direction: column; }
+  .route-planner-content { padding-top: 20px; }
+  .route-location-button { width: 100%; min-height: 48px; }
+  .route-zone-picker { scroll-snap-type: x proximity; }
+  .route-zone-option { min-width: min(80vw, 270px); min-height: 58px; scroll-snap-align: start; }
+  .route-zone-heading { align-items: flex-start; flex-direction: column; padding: 17px; }
+  .route-planner-content .zones-osm-map { height: clamp(240px, 42dvh, 360px); min-height: 0; }
+  .route-stop-list { padding: 0 14px 12px; }
+  .route-stop-list li { grid-template-columns: 24px 30px minmax(0, 1fr); gap: 8px; padding: 10px 0; }
+  .route-stop-copy strong, .route-stop-copy small { white-space: normal; overflow-wrap: anywhere; }
+  .route-stop-drag-handle { height: 44px; }
+  .route-stop-distance { grid-column: 3; grid-row: 2; }
+  .route-stop-order-actions { grid-column: 3; grid-row: 3; }
+  .route-stop-order-actions button { width: 44px; height: 44px; }
+  .route-stop-actions { grid-column: 3; grid-row: 4; align-items: center; flex-wrap: wrap; }
+  .route-stop-list a { min-height: 44px; }
+}

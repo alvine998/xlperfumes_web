@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, Camera, CameraOff, ImageUp, MapPin, QrCode, Search, Store as StoreIcon } from "lucide-react";
 import { DashboardFooter } from "@/components/layout/dashboard-footer";
 import { createQRCodeDetector } from "@/lib/barcode-detector";
-import { getApi, getApiError } from "@/lib/api";
+import { api, getApi, getApiError } from "@/lib/api";
 import { isApiPagination } from "@/lib/pagination";
 import { isStore, type Store } from "@/lib/stores";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -18,7 +18,7 @@ function sameName(left: string, right: string) {
   return left.trim().localeCompare(right.trim(), "id", { sensitivity: "base" }) === 0;
 }
 
-export function StoreVisitEntry() {
+export function StoreVisitEntry({ targetStoreId = null, targetStoreName = "" }: { targetStoreId?: number | null; targetStoreName?: string }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [stores, setStores] = useState<Store[]>([]);
@@ -28,6 +28,9 @@ export function StoreVisitEntry() {
   const [cameraOn, setCameraOn] = useState(false);
   const [cameraError, setCameraError] = useState("");
   const [galleryLoading, setGalleryLoading] = useState(false);
+  const [targetScanVerified, setTargetScanVerified] = useState(false);
+  const [isCheckingIn, setIsCheckingIn] = useState(false);
+  const [checkInError, setCheckInError] = useState("");
   const videoRef = useRef<HTMLVideoElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -42,7 +45,7 @@ export function StoreVisitEntry() {
   }, []);
 
   useEffect(() => {
-    if (!debouncedQuery) return;
+    if (!debouncedQuery || (targetStoreId !== null && !targetScanVerified)) return;
     let isCurrent = true;
     const params = new URLSearchParams({ store_name: debouncedQuery, page: "1", limit: "100" });
 
@@ -56,8 +59,17 @@ export function StoreVisitEntry() {
 
         const matches = data.stores;
         const exactMatches = matches.filter((store) => sameName(store.name, debouncedQuery));
+        const expectedStore = targetStoreId === null
+          ? null
+          : exactMatches.find((store) => store.id === targetStoreId) ?? null;
         setStores(matches);
-        setSelectedStore(exactMatches.length === 1 ? exactMatches[0] ?? null : null);
+        setSelectedStore(targetStoreId !== null
+          ? expectedStore
+          : exactMatches.length === 1 ? exactMatches[0] ?? null : null);
+        if (targetStoreId !== null && !expectedStore) {
+          setSearchError("QR Code tidak cocok dengan toko tujuan atau toko ini tidak termasuk zona Anda.");
+          return;
+        }
         setSearchError("");
       })
       .catch((cause: unknown) => {
@@ -71,7 +83,7 @@ export function StoreVisitEntry() {
       });
 
     return () => { isCurrent = false; };
-  }, [debouncedQuery]);
+  }, [debouncedQuery, targetScanVerified, targetStoreId]);
 
   function stopCamera() {
     if (scanTimerRef.current !== null) window.clearInterval(scanTimerRef.current);
@@ -82,7 +94,8 @@ export function StoreVisitEntry() {
     setCameraOn(false);
   }
 
-  function handleStoreName(value: string) {
+  function handleStoreName(value: string, scannedForTarget = false) {
+    setTargetScanVerified(targetStoreId !== null && scannedForTarget);
     searchQueryRef.current = value.trim();
     setQuery(value);
     setStores([]);
@@ -97,15 +110,23 @@ export function StoreVisitEntry() {
       setCameraError("QR Code tidak berisi nama toko.");
       return;
     }
+    if (targetStoreId !== null && !sameName(storeName, targetStoreName)) {
+      setSelectedStore(null);
+      setTargetScanVerified(false);
+      setCameraError(`QR Code ini bukan toko tujuan. Scan QR ${targetStoreName} di lokasi toko tersebut.`);
+      return;
+    }
     setCameraError("");
-    handleStoreName(storeName);
+    handleStoreName(storeName, true);
   }
 
   async function startCamera() {
     setCameraError("");
     const detector = createQRCodeDetector();
     if (!detector) {
-      setCameraError("Pemindaian QR belum didukung di browser ini. Masukkan nama toko atau pilih QR dari galeri.");
+      setCameraError(targetStoreId !== null
+        ? "Pemindaian QR belum didukung di browser ini. Gunakan browser yang mendukung kamera untuk scan di lokasi toko."
+        : "Pemindaian QR belum didukung di browser ini. Masukkan nama toko atau pilih QR dari galeri.");
       return;
     }
 
@@ -135,7 +156,9 @@ export function StoreVisitEntry() {
       }, 350);
     } catch {
       stopCamera();
-      setCameraError("Kamera tidak dapat dibuka. Periksa izin kamera atau masukkan nama toko secara manual.");
+      setCameraError(targetStoreId !== null
+        ? "Kamera tidak dapat dibuka. Izinkan akses kamera untuk scan QR di lokasi toko."
+        : "Kamera tidak dapat dibuka. Periksa izin kamera atau masukkan nama toko secara manual.");
     }
   }
 
@@ -144,7 +167,9 @@ export function StoreVisitEntry() {
     setCameraError("");
     const detector = createQRCodeDetector();
     if (!detector) {
-      setCameraError("Pembacaan QR dari gambar belum didukung di browser ini. Masukkan nama toko secara manual.");
+      setCameraError(targetStoreId !== null
+        ? "Pembacaan QR dari gambar belum didukung di browser ini. Scan QR toko menggunakan kamera."
+        : "Pembacaan QR dari gambar belum didukung di browser ini. Masukkan nama toko secara manual.");
       return;
     }
 
@@ -168,13 +193,23 @@ export function StoreVisitEntry() {
     }
   }
 
-  function continueToVisit() {
-    if (!selectedStore) return;
+  async function continueToVisit() {
+    if (!selectedStore || (targetStoreId !== null && !targetScanVerified)) return;
+    setIsCheckingIn(true);
+    setCheckInError("");
+    try {
+      await api.post(`/stores/${selectedStore.id}/visit/check-in`);
+    } catch (cause: unknown) {
+      setCheckInError(getApiError(cause));
+      setIsCheckingIn(false);
+      return;
+    }
     const params = new URLSearchParams({
       storeId: String(selectedStore.id),
       storeName: selectedStore.name,
     });
     router.push(`/main/kunjungan-toko/detail?${params.toString()}`);
+    setIsCheckingIn(false);
   }
 
   const shownStores = stores.slice(0, 8);
@@ -185,7 +220,9 @@ export function StoreVisitEntry() {
         <div>
           <span className="dashboard-eyebrow">OPERASIONAL LAPANGAN</span>
           <h1 id="store-visit-title">Kunjungan Toko</h1>
-          <p>Temukan toko yang akan dikunjungi dengan QR Code atau nama toko.</p>
+          <p>{targetStoreId !== null
+            ? `Scan QR ${targetStoreName} di lokasi toko untuk mencatat kehadiran dan membuka kunjungan.`
+            : "Temukan toko yang akan dikunjungi dengan QR Code atau nama toko."}</p>
         </div>
         <div className="store-visit-step" aria-label="Langkah 1 dari 2">
           <span className="is-current"><b>01</b> Pilih Toko</span>
@@ -209,7 +246,7 @@ export function StoreVisitEntry() {
             {!cameraOn && (
               <div className="store-visit-camera-empty">
                 <span><QrCode aria-hidden="true" /></span>
-                <strong>Arahkan QR Code toko ke kamera</strong>
+              <strong>{targetStoreId !== null ? `Scan QR ${targetStoreName} di toko` : "Arahkan QR Code toko ke kamera"}</strong>
                 <small>Pastikan nama toko terlihat jelas pada label QR.</small>
               </div>
             )}
@@ -220,22 +257,23 @@ export function StoreVisitEntry() {
               {cameraOn ? <CameraOff aria-hidden="true" /> : <Camera aria-hidden="true" />}
               {cameraOn ? "Matikan Kamera" : "Scan QR Code"}
             </button>
-            <input
+            {targetStoreId === null && <input
               className="store-visit-gallery-input"
               ref={galleryInputRef}
               type="file"
               accept="image/*"
               aria-label="Pilih gambar QR toko dari galeri"
               onChange={(event) => void scanGalleryImage(event.target.files?.[0])}
-            />
-            <button className="store-visit-button gallery-button" type="button" onClick={() => galleryInputRef.current?.click()} disabled={galleryLoading}>
+            />}
+            {targetStoreId === null && <button className="store-visit-button gallery-button" type="button" onClick={() => galleryInputRef.current?.click()} disabled={galleryLoading}>
               <ImageUp aria-hidden="true" />
               {galleryLoading ? "Membaca QR…" : "Pilih dari Galeri"}
-            </button>
+            </button>}
           </div>
 
           {cameraError && <p className="store-visit-error" role="alert">{cameraError}</p>}
 
+          {targetStoreId === null && <>
           <div className="store-visit-divider"><span>ATAU CARI MANUAL</span></div>
           <label className="store-visit-search-label" htmlFor="store-visit-search">Nama Toko</label>
           <div className="store-visit-search-box">
@@ -251,11 +289,12 @@ export function StoreVisitEntry() {
             />
           </div>
           <p className="store-visit-search-help" id="store-visit-search-help">Pilih toko dari hasil pencarian yang muncul.</p>
+          </>}
 
           {isSearching && <p className="store-visit-search-state" role="status">Mencari toko…</p>}
           {searchError && <p className="store-visit-error" role="alert">{searchError}</p>}
           {!isSearching && !searchError && query.trim() && stores.length === 0 && !selectedStore && debouncedQuery === query.trim() && (
-            <p className="store-visit-search-state" role="status">Toko dengan nama tersebut belum ditemukan.</p>
+            <p className="store-visit-error" role="alert">Toko tidak ditemukan atau berada di luar zona yang ditugaskan. Periksa nama toko atau hubungi admin untuk memeriksa penugasan zona.</p>
           )}
           {shownStores.length > 0 && !selectedStore && (
             <ul className="store-visit-results" aria-label="Hasil pencarian toko">
@@ -295,15 +334,20 @@ export function StoreVisitEntry() {
           ) : (
             <div className="store-visit-information-empty" role="status">
               <span><StoreIcon aria-hidden="true" /></span>
-              <strong>Belum ada toko dipilih</strong>
-              <p>Scan QR, pilih gambar QR dari galeri, atau cari nama toko. Informasi toko akan tampil di sini.</p>
+              <strong>{targetStoreId !== null ? "Menunggu scan QR toko" : "Belum ada toko dipilih"}</strong>
+              <p>{targetStoreId !== null
+                ? `Scan QR ${targetStoreName} di lokasi toko ini untuk memastikan Anda sudah tiba.`
+                : "Scan QR, pilih gambar QR dari galeri, atau cari nama toko. Informasi toko akan tampil di sini."}</p>
             </div>
           )}
 
           <div className="store-visit-information-footer">
-            <p>{selectedStore ? "Pastikan toko yang dipilih sudah benar sebelum melanjutkan." : "Pilih satu toko untuk membuka detail kunjungan."}</p>
-            <button className="store-visit-continue" type="button" onClick={continueToVisit} disabled={!selectedStore}>
-              Lanjutkan <ArrowRight aria-hidden="true" />
+            <p>{selectedStore
+              ? targetStoreId !== null ? "QR toko tujuan berhasil dipindai. Lanjutkan untuk mencatat kunjungan dan membuka detail." : "Lanjutkan untuk mencatat kunjungan dan membuka detail toko."
+              : targetStoreId !== null ? "Kunjungan hanya dapat dimulai setelah QR toko tujuan dipindai di lokasi." : "Pilih satu toko untuk membuka detail kunjungan."}</p>
+            {checkInError && <p className="store-visit-error" role="alert">Kunjungan gagal dicatat: {checkInError}</p>}
+            <button className="store-visit-continue" type="button" onClick={() => void continueToVisit()} disabled={!selectedStore || (targetStoreId !== null && !targetScanVerified) || isCheckingIn}>
+              {isCheckingIn ? "Mencatat kunjungan…" : "Lanjutkan"} <ArrowRight aria-hidden="true" />
             </button>
           </div>
         </section>

@@ -15,7 +15,11 @@ export const metadata: Metadata = {
   description: "Pilih toko untuk memulai kunjungan melalui QR Code atau nama toko.",
 };
 
-export default function StoreVisitPage() {
+type StoreVisitPageProps = {
+  searchParams: Promise<{ storeId?: string | string[]; storeName?: string | string[] }>;
+};
+
+export default function StoreVisitPage({ searchParams }: StoreVisitPageProps) {
   return (
     <main className="dashboard-shell">
       <MainSidebar />
@@ -25,14 +29,18 @@ export default function StoreVisitPage() {
           <div className="topbar-right"><TodayLabel /><NotificationDropdown /><ProfileMenu /></div>
         </header>
         <Suspense fallback={<MainContentLoading />}>
-          <AuthorizedStoreVisit />
+          <AuthorizedStoreVisit searchParams={searchParams} />
         </Suspense>
       </div>
     </main>
   );
 }
 
-async function AuthorizedStoreVisit() {
+async function AuthorizedStoreVisit({ searchParams }: StoreVisitPageProps) {
+  const params = await searchParams;
+  const storeId = Array.isArray(params.storeId) ? params.storeId[0] ?? "" : params.storeId ?? "";
+  const storeName = Array.isArray(params.storeName) ? params.storeName[0] ?? "" : params.storeName ?? "";
   await requireFeatureAccess("store_visit");
-  return <StoreVisitEntry />;
+  const targetStoreId = /^\d+$/.test(storeId) ? Number(storeId) : null;
+  return <StoreVisitEntry targetStoreId={targetStoreId} targetStoreName={storeName} />;
 }

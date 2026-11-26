@@ -41,7 +41,39 @@
 .action-violet { --action-color: #7650c2; --action-tint: #f1ebff; }
 .action-teal { --action-color: #148c80; --action-tint: #e5f7f4; }
 .role-dashboard-no-actions { margin: 0; border-radius: 10px; padding: 16px; color: #626777; background: #f7f8fb; font-size: 13px; }
+.collecting-zones > header > a { display: inline-flex; align-items: center; gap: 6px; color: #41694a; font-size: 13px; font-weight: 700; text-decoration: none; }
+.collecting-zones > header > a svg { width: 16px; height: 16px; }
+.collecting-zones ul { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.collecting-zones li { display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid #e4e9e2; border-radius: 12px; padding: 13px 14px; background: #fff; }
+.collecting-zones li > span { display: grid; gap: 5px; min-width: 0; }
+.collecting-zones li strong { overflow: hidden; color: #313a30; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+.collecting-zones li small { color: #747b70; font-size: 12px; }
+.collecting-zones li > a { flex: 0 0 auto; color: #456d4d; font-size: 12px; font-weight: 700; text-decoration: none; }
 @media (max-width: 1000px) { .role-dashboard-action-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 760px) { .role-dashboard-heading { align-items: flex-start; } .role-dashboard-metrics { grid-template-columns: 1fr; } .role-dashboard-metric { min-height: 148px; } }
 @media (max-width: 540px) { .role-dashboard-heading { flex-direction: column; align-items: stretch; } .role-dashboard-branch { align-self: flex-start; } .role-dashboard-error { align-items: flex-start; flex-direction: column; } .role-dashboard-action-grid { grid-template-columns: 1fr; } .role-dashboard-actions { padding: 16px; } }
 @media (prefers-reduced-motion: reduce) { .role-dashboard-action { transition: none; } .role-dashboard-action:hover { transform: none; } }
+
+@media (max-width: 760px) {
+  .role-dashboard { padding-top: 20px; }
+  .role-dashboard-heading { gap: 14px; margin-bottom: 18px; }
+  .role-dashboard-heading h1 { font-size: 29px; line-height: 1.15; }
+  .role-dashboard-heading p { margin-top: 8px; font-size: 14px; }
+  .role-dashboard-branch { max-width: 100%; min-height: 40px; font-size: 12px; }
+  .role-dashboard-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .role-dashboard-metric { display: flex; min-height: 166px; align-items: flex-start; flex-direction: column; gap: 7px; padding: 14px; box-shadow: none; }
+  .role-dashboard-metric-icon { width: 36px; height: 36px; }
+  .role-dashboard-metric-label { font-size: 12px; line-height: 1.35; }
+  .role-dashboard-metric strong { margin-top: auto; font-size: 27px; }
+  .role-dashboard-metric-note { font-size: 11px; line-height: 1.35; }
+  .role-dashboard-actions { margin-top: 17px; box-shadow: none; }
+  .role-dashboard-actions > header { align-items: flex-start; }
+  .role-dashboard-action { min-height: 75px; padding: 12px; }
+  .role-dashboard-action-copy strong { font-size: 14px; }
+  .role-dashboard-action-copy small { font-size: 12px; }
+  .collecting-zones > header { flex-wrap: wrap; }
+  .collecting-zones li { min-width: 0; }
+  .collecting-zones li strong { white-space: normal; overflow-wrap: anywhere; }
+  .collecting-zones li > a { display: inline-flex; min-height: 44px; align-items: center; }
+}
+@media (max-width: 350px) { .role-dashboard-metrics { grid-template-columns: 1fr; } }

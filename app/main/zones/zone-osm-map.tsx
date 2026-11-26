@@ -53,9 +53,10 @@ function formatRouteSummary(route: OsrmRoute) {
 
 type ZoneOsmMapProps = {
   stores: Store[];
+  startLocation?: { latitude: number; longitude: number } | null;
 };
 
-export function ZoneOsmMap({ stores }: ZoneOsmMapProps) {
+export function ZoneOsmMap({ stores, startLocation = null }: ZoneOsmMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const [isLoadingRoute, setIsLoadingRoute] = useState(stores.length > 1);
   const [routeSummary, setRouteSummary] = useState("");
@@ -78,13 +79,14 @@ export function ZoneOsmMap({ stores }: ZoneOsmMapProps) {
 
       const firstStore = stores[0];
       if (!firstStore) return;
+      const start = startLocation ?? firstStore;
       const activeMap = leaflet.map(mapRef.current, {
         scrollWheelZoom: false,
         zoomAnimation: false,
         fadeAnimation: false,
         markerZoomAnimation: false,
       })
-        .setView([firstStore.latitude, firstStore.longitude], 13);
+        .setView([start.latitude, start.longitude], 13);
       map = activeMap;
       leaflet.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
@@ -106,8 +108,25 @@ export function ZoneOsmMap({ stores }: ZoneOsmMapProps) {
         marker.bindPopup(popup);
         return leaflet.latLng(store.latitude, store.longitude);
       });
+      const routeLocations = startLocation
+        ? [startLocation, ...stores]
+        : stores;
+      const startPoint = leaflet.latLng(start.latitude, start.longitude);
+      if (startLocation) {
+        const startMarker = leaflet.marker(startPoint, {
+          icon: leaflet.divIcon({
+            className: "zones-map-marker zones-map-start-marker",
+            html: "<span>Awal</span>",
+            iconSize: [48, 30],
+            iconAnchor: [24, 15],
+          }),
+        }).addTo(activeMap);
+        const popup = document.createElement("span");
+        popup.textContent = "Lokasi Anda";
+        startMarker.bindPopup(popup);
+      }
 
-      if (stores.length === 1) {
+      if (stores.length === 1 && !startLocation) {
         const [storePoint] = storePoints;
         if (storePoint) activeMap.setView(storePoint, 15);
         setIsLoadingRoute(false);
@@ -115,7 +134,7 @@ export function ZoneOsmMap({ stores }: ZoneOsmMapProps) {
       }
 
       try {
-        const locations = stores
+        const locations = routeLocations
           .map(({ longitude, latitude }) => `${longitude},${latitude}`)
           .join(";");
         const response = await fetch(
@@ -137,7 +156,7 @@ export function ZoneOsmMap({ stores }: ZoneOsmMapProps) {
           weight: 5,
           opacity: 0.85,
         }).addTo(activeMap);
-        activeMap.fitBounds(leaflet.latLngBounds([...storePoints, ...routePoints]), {
+        activeMap.fitBounds(leaflet.latLngBounds([...storePoints, startPoint, ...routePoints]), {
           padding: [32, 32],
           maxZoom: 14,
           animate: false,
@@ -150,7 +169,7 @@ export function ZoneOsmMap({ stores }: ZoneOsmMapProps) {
             ? cause.message
             : "Rute OpenStreetMap tidak dapat dimuat saat ini.",
         );
-        activeMap.fitBounds(leaflet.latLngBounds(storePoints), {
+        activeMap.fitBounds(leaflet.latLngBounds([...storePoints, startPoint]), {
           padding: [32, 32],
           maxZoom: 14,
           animate: false,
@@ -175,7 +194,7 @@ export function ZoneOsmMap({ stores }: ZoneOsmMapProps) {
       controller.abort();
       map?.remove();
     };
-  }, [stores]);
+  }, [stores, startLocation]);
 
   if (stores.length === 0) return null;
 

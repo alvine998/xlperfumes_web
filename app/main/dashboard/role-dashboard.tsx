@@ -12,6 +12,7 @@ import {
   Package,
   PackageCheck,
   RefreshCw,
+  Route,
   ShoppingBag,
   Warehouse,
   type LucideIcon,
@@ -31,6 +32,7 @@ type OperationalSummary = {
 };
 type Metric = { key: StatusKey; label: string; note: string; color: string; Icon: LucideIcon };
 type Action = { href: string; title: string; description: string; Icon: LucideIcon; color: string };
+type AssignedZoneSummary = { id: number; name: string; branch: string | null; stores: { id: number; name: string }[] };
 
 const STATUS_KEYS: StatusKey[] = ["pending", "di_gudang", "di_toko", "di_spg", "di_collecting", "terjual", "rusak"];
 const METRICS: Record<OperationalRole, Metric[]> = {
@@ -93,6 +95,9 @@ function getActions(role: OperationalRole, permissions: FeaturePermissions): Act
     actions.push({ href: "/main/products", title: "Daftar Produk", description: "Cari produk dan lihat status barang cabang.", color: "blue", Icon: Package });
   }
   if (permissions.store_visit) {
+    if (role === "spg" || role === "collecting") {
+      actions.push({ href: "/main/rute-toko", title: "Rute Toko", description: "Lihat zona tugas dan susun urutan kunjungan.", color: "green", Icon: Route });
+    }
     actions.push({ href: "/main/kunjungan-toko", title: "Kunjungan Toko", description: "Mulai kunjungan dan catat aktivitas toko.", color: "teal", Icon: ClipboardCheck });
   }
   return actions;
@@ -103,6 +108,9 @@ export function RoleDashboard({ role, permissions }: { role: OperationalRole; pe
   const [error, setError] = useState("");
   const [retryCount, setRetryCount] = useState(0);
   const [loadedRequest, setLoadedRequest] = useState<number | null>(null);
+  const [assignedZones, setAssignedZones] = useState<AssignedZoneSummary[]>([]);
+  const [zonesError, setZonesError] = useState("");
+  const [zonesLoading, setZonesLoading] = useState(true);
   const loading = loadedRequest !== retryCount;
   const actions = getActions(role, permissions);
 
@@ -124,6 +132,25 @@ export function RoleDashboard({ role, permissions }: { role: OperationalRole; pe
       });
     return () => { active = false; };
   }, [role, retryCount]);
+
+  useEffect(() => {
+    if (role === "gudang" || !permissions.store_visit) return;
+    let active = true;
+    getApi("/zones/my")
+      .then(({ data }) => {
+        if (!isRecord(data) || !Array.isArray(data.zones)) throw new Error("Data zona dari API tidak valid.");
+        const zones = data.zones.filter((zone): zone is AssignedZoneSummary =>
+          isRecord(zone) && typeof zone.id === "number" && typeof zone.name === "string" &&
+          (typeof zone.branch === "string" || zone.branch === null) && Array.isArray(zone.stores) &&
+          zone.stores.every((store) => isRecord(store) && typeof store.id === "number" && typeof store.name === "string"),
+        );
+        if (zones.length !== data.zones.length) throw new Error("Data zona dari API tidak valid.");
+        if (active) { setAssignedZones(zones); setZonesError(""); }
+      })
+      .catch((cause: unknown) => { if (active) setZonesError(getApiError(cause)); })
+      .finally(() => { if (active) setZonesLoading(false); });
+    return () => { active = false; };
+  }, [role, permissions.store_visit]);
 
   const branchLabel = summary?.branch ?? (summary?.branchId === null ? "Semua Cabang" : summary?.branchId ? `Cabang ${summary.branchId}` : "Memuat cabang…");
 
@@ -162,6 +189,14 @@ export function RoleDashboard({ role, permissions }: { role: OperationalRole; pe
           </Link>
         ))}</div> : <p className="role-dashboard-no-actions">Belum ada akses fitur operasional untuk akun ini.</p>}
       </section>
+      {role !== "gudang" && permissions.store_visit && (
+        <section className="role-dashboard-actions collecting-zones" aria-labelledby="collecting-zones-title">
+          <header><div><span className="dashboard-eyebrow">WILAYAH TUGAS</span><h2 id="collecting-zones-title">Zona toko Anda</h2></div><Link href="/main/rute-toko">Lihat rute toko <ArrowRight aria-hidden="true" /></Link></header>
+          {zonesLoading ? <p className="role-dashboard-loading" role="status">Memuat zona toko Anda…</p> : zonesError ? <p className="role-dashboard-error" role="alert">Zona toko gagal dimuat: {zonesError}</p> : assignedZones.length ? (
+            <ul>{assignedZones.map((zone) => <li key={zone.id}><span><strong>{zone.name}</strong><small>{zone.branch ?? "Cabang"} · {zone.stores.length} toko</small></span><Link href={`/main/rute-toko?zoneId=${zone.id}`}>Lihat zona</Link></li>)}</ul>
+          ) : <p className="role-dashboard-loading" role="status">Belum ada zona toko yang ditugaskan kepada Anda.</p>}
+        </section>
+      )}
       <DashboardFooter section={`RINGKASAN ${roleLabel(role).toUpperCase()}`} />
     </div>
   );

@@ -1164,3 +1164,26 @@
 .notification-item time,
 .notification-footer { color: #535266; }
 .notification-actions button { color: #4d3bb4; }
+
+.field-bottom-nav, .field-menu-layer { display: none; }
+@media (max-width: 760px) {
+  .dashboard-shell:has(.field-sidebar) { padding-bottom: calc(68px + env(safe-area-inset-bottom)); }
+  .dashboard-sidebar.field-sidebar { height: calc(68px + env(safe-area-inset-bottom)); border-radius: 16px 16px 0 0; padding-bottom: env(safe-area-inset-bottom); }
+  .field-sidebar > .dashboard-nav { display: none; }
+  .field-bottom-nav { display: grid; height: 68px; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); align-items: stretch; padding: 4px 6px; }
+  .field-bottom-link { display: flex; min-width: 0; align-items: center; justify-content: center; flex-direction: column; gap: 4px; border: 0; border-radius: 11px; padding: 5px 2px; color: #f6f4ff; background: transparent; font: inherit; font-size: 10px; font-weight: 650; text-align: center; text-decoration: none; cursor: pointer; }
+  .field-bottom-link svg { width: 22px; height: 22px; flex: 0 0 auto; }
+  .field-bottom-link span { overflow: hidden; width: 100%; text-overflow: ellipsis; white-space: nowrap; }
+  .field-bottom-link.is-active { color: #fff; background: #ffffff26; }
+  .field-menu-layer { position: fixed; z-index: 9; inset: 0 0 calc(68px + env(safe-area-inset-bottom)); display: flex; align-items: end; }
+  .field-menu-backdrop { position: absolute; inset: 0; width: 100%; border: 0; background: #1c21478c; }
+  .field-menu-panel { position: relative; width: 100%; max-height: min(70dvh, 620px); overflow-y: auto; border-radius: 18px 18px 0 0; padding: 18px 18px 22px; color: #252536; background: #fff; box-shadow: 0 -10px 25px #24204824; }
+  .field-menu-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; font-size: 18px; }
+  .field-menu-heading button { display: grid; width: 44px; height: 44px; place-items: center; border: 1px solid #e0e0e8; border-radius: 10px; color: #30304b; background: #fff; }
+  .field-menu-heading svg { width: 20px; height: 20px; }
+  .field-menu-group { display: grid; gap: 5px; margin-top: 15px; }
+  .field-menu-group > span { color: #605c88; font-size: 11px; font-weight: 800; letter-spacing: .1em; }
+  .field-menu-group a { display: flex; min-height: 46px; align-items: center; gap: 12px; border-radius: 10px; padding: 0 12px; color: #292840; font-size: 14px; text-decoration: none; }
+  .field-menu-group a[aria-current="page"] { color: #4938a9; background: #f0edff; font-weight: 750; }
+  .field-menu-group a svg { width: 19px; height: 19px; }
+}
