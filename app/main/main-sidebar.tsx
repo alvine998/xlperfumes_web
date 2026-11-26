@@ -74,6 +74,14 @@ const NAV_GROUPS: {
   },
 ];
 
+const PRIMARY_HREFS: Record<UserRole, readonly string[]> = {
+  admin: ["/main/dashboard", "/main/store-stock", "/main/warehouse-stock", "/main/stores"],
+  owner: ["/main/dashboard", "/main/store-stock", "/main/warehouse-stock", "/main/stores"],
+  gudang: ["/main/dashboard", "/main/warehouse-stock", "/main/products", "/main/variants"],
+  spg: ["/main/dashboard", "/main/ambil-barang", "/main/rute-toko", "/main/kunjungan-toko"],
+  collecting: ["/main/dashboard", "/main/ambil-barang", "/main/rute-toko", "/main/kunjungan-toko"],
+};
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
@@ -114,19 +122,20 @@ function MainSidebarContent() {
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [menuOpen]);
 
-  const isFieldRole = role === "spg" || role === "collecting";
   const visibleGroups = permissions ? NAV_GROUPS.map(({ label, items }) => ({
     label,
     items: items.filter(({ feature, roles }) =>
       (!roles || (role !== null && roles.includes(role))) &&
       (!feature || permissions[feature])),
   })).filter(({ items }) => items.length > 0) : [];
-  const primaryHrefs = ["/main/dashboard", "/main/ambil-barang", "/main/rute-toko", "/main/kunjungan-toko"];
-  const primaryItems = visibleGroups.flatMap(({ items }) => items).filter(({ href }) => primaryHrefs.includes(href));
-  const isExtraActive = !primaryHrefs.some((href) => pathname === href || pathname.startsWith(`${href}/`));
+  const visibleItems = visibleGroups.flatMap(({ items }) => items);
+  const primaryItems = role ? PRIMARY_HREFS[role].flatMap((href) => visibleItems.filter((item) => item.href === href)) : [];
+  const activeHref = visibleItems.filter(({ href }) => pathname === href || pathname.startsWith(`${href}/`))
+    .sort((left, right) => right.href.length - left.href.length)[0]?.href;
+  const isExtraActive = !primaryItems.some(({ href }) => href === activeHref);
 
   return (
-    <aside className={`dashboard-sidebar${isFieldRole ? " field-sidebar" : ""}`} aria-label="Navigasi utama">
+    <aside className="dashboard-sidebar mobile-sidebar" aria-label="Navigasi utama">
       <Link className="dashboard-brand" href="/" aria-label="XL Perfumes beranda">
         <span className="dashboard-brand-mark">XL</span>
         <span>PERFUMES</span>
@@ -152,19 +161,19 @@ function MainSidebarContent() {
             </div>
           )) : <SidebarLoadingStatus />}
       </nav>
-      {isFieldRole && permissions && <>
-        <nav className="field-bottom-nav" aria-label="Navigasi lapangan">
+      {role && permissions && <>
+        <nav className="mobile-bottom-nav" aria-label="Navigasi bawah">
           {primaryItems.map(({ href, label, Icon }) => {
-            const active = pathname === href || pathname.startsWith(`${href}/`);
-            return <Link className={`field-bottom-link${active ? " is-active" : ""}`} href={href} aria-current={active ? "page" : undefined} key={href}><Icon aria-hidden="true" /><span>{label}</span></Link>;
+            const active = activeHref === href;
+            return <Link className={`mobile-bottom-link${active ? " is-active" : ""}`} href={href} aria-current={active ? "page" : undefined} key={href}><Icon aria-hidden="true" /><span>{label}</span></Link>;
           })}
-          <button className={`field-bottom-link${menuOpen || isExtraActive ? " is-active" : ""}`} type="button" onClick={() => setMenuPath(menuOpen ? null : pathname)} aria-expanded={menuOpen} aria-controls={menuOpen ? "field-menu" : undefined}><Menu aria-hidden="true" /><span>Menu</span></button>
+          <button className={`mobile-bottom-link${menuOpen || isExtraActive ? " is-active" : ""}`} type="button" onClick={() => setMenuPath(menuOpen ? null : pathname)} aria-expanded={menuOpen} aria-controls={menuOpen ? "mobile-menu" : undefined}><Menu aria-hidden="true" /><span>Menu</span></button>
         </nav>
-        {menuOpen && <div className="field-menu-layer">
-          <button className="field-menu-backdrop" type="button" aria-label="Tutup menu" onClick={() => setMenuPath(null)} />
-          <nav className="field-menu-panel" id="field-menu" aria-label="Semua fitur">
-            <div className="field-menu-heading"><strong>Semua fitur</strong><button type="button" aria-label="Tutup menu" onClick={() => setMenuPath(null)}><X aria-hidden="true" /></button></div>
-            {visibleGroups.map(({ label, items }) => <div className="field-menu-group" key={label}><span>{label}</span>{items.map(({ href, label: itemLabel, Icon }) => <Link href={href} key={href} aria-current={pathname === href || pathname.startsWith(`${href}/`) ? "page" : undefined} onClick={() => setMenuPath(null)}><Icon aria-hidden="true" />{itemLabel}</Link>)}</div>)}
+        {menuOpen && <div className="mobile-menu-layer">
+          <button className="mobile-menu-backdrop" type="button" aria-label="Tutup menu" onClick={() => setMenuPath(null)} />
+          <nav className="mobile-menu-panel" id="mobile-menu" aria-label="Semua fitur">
+            <div className="mobile-menu-heading"><strong>Semua fitur</strong><button type="button" aria-label="Tutup menu" onClick={() => setMenuPath(null)}><X aria-hidden="true" /></button></div>
+            {visibleGroups.map(({ label, items }) => <div className="mobile-menu-group" key={label}><span>{label}</span>{items.map(({ href, label: itemLabel, Icon }) => <Link href={href} key={href} aria-current={activeHref === href ? "page" : undefined} onClick={() => setMenuPath(null)}><Icon aria-hidden="true" />{itemLabel}</Link>)}</div>)}
           </nav>
         </div>}
       </>}
@@ -174,7 +183,7 @@ function MainSidebarContent() {
 
 function MainSidebarLoading() {
   return (
-    <aside className="dashboard-sidebar" aria-label="Navigasi utama">
+    <aside className="dashboard-sidebar mobile-sidebar" aria-label="Navigasi utama">
       <Link className="dashboard-brand" href="/" aria-label="XL Perfumes beranda">
         <span className="dashboard-brand-mark">XL</span>
         <span>PERFUMES</span>
