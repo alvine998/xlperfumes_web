@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowDown, ArrowUp, ClipboardCheck, GripVertical, LocateFixed, MapPin, Navigation, Store as StoreIcon } from "lucide-react";
@@ -58,6 +58,11 @@ export function RoutePlanner() {
   const [locationError, setLocationError] = useState("");
   const [manualOrderByZone, setManualOrderByZone] = useState<Record<number, number[]>>({});
   const [draggedStoreId, setDraggedStoreId] = useState<number | null>(null);
+  const [dragMapStores, setDragMapStores] = useState<RouteStore[] | null>(null);
+  const draggedStoreRef = useRef<number | null>(null);
+  const stopListRef = useRef<HTMLOListElement>(null);
+  const previousPositionsRef = useRef<Map<number, number> | null>(null);
+  const moveAnimationsRef = useRef<Map<number, Animation>>(new Map());
 
   useEffect(() => {
     let active = true;
@@ -109,9 +114,44 @@ export function RoutePlanner() {
     }
     return route;
   }, [currentLocation, manualOrderByZone, selectedZone]);
+  const mapStores = draggedStoreId !== null && dragMapStores
+    ? dragMapStores
+    : orderedStores;
+
+  useLayoutEffect(() => {
+    const previousPositions = previousPositionsRef.current;
+    previousPositionsRef.current = null;
+    if (!previousPositions || !stopListRef.current) return;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    for (const row of stopListRef.current.children) {
+      if (!(row instanceof HTMLElement)) continue;
+      const id = Number(row.dataset.storeId);
+      const previousTop = previousPositions.get(id);
+      moveAnimationsRef.current.get(id)?.cancel();
+      moveAnimationsRef.current.delete(id);
+      if (previousTop === undefined || reduceMotion) continue;
+      const distance = previousTop - row.getBoundingClientRect().top;
+      if (Math.abs(distance) < 1) continue;
+      const animation = row.animate(
+        [{ transform: `translateY(${distance}px)` }, { transform: "translateY(0)" }],
+        { duration: 220, easing: "cubic-bezier(.2,.8,.2,1)" },
+      );
+      moveAnimationsRef.current.set(id, animation);
+      animation.onfinish = () => { if (moveAnimationsRef.current.get(id) === animation) moveAnimationsRef.current.delete(id); };
+    }
+  }, [orderedStores]);
+
+  function captureStopPositions() {
+    const positions = new Map<number, number>();
+    for (const row of stopListRef.current?.children ?? []) {
+      if (row instanceof HTMLElement) positions.set(Number(row.dataset.storeId), row.getBoundingClientRect().top);
+    }
+    previousPositionsRef.current = positions;
+  }
 
   function moveStore(fromIndex: number, toIndex: number) {
     if (!selectedZone || fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || toIndex >= orderedStores.length) return;
+    captureStopPositions();
     const next = [...orderedStores];
     const [store] = next.splice(fromIndex, 1);
     if (!store) return;
@@ -120,10 +160,18 @@ export function RoutePlanner() {
   }
 
   function moveDraggedStore(targetId: number) {
-    if (draggedStoreId === null || draggedStoreId === targetId) return;
-    const fromIndex = orderedStores.findIndex(({ id }) => id === draggedStoreId);
+    const draggedId = draggedStoreRef.current;
+    if (draggedId === null || draggedId === targetId) return;
+    const fromIndex = orderedStores.findIndex(({ id }) => id === draggedId);
     const toIndex = orderedStores.findIndex(({ id }) => id === targetId);
     if (fromIndex >= 0 && toIndex >= 0) moveStore(fromIndex, toIndex);
+  }
+
+  function finishDrag() {
+    if (draggedStoreRef.current === null) return;
+    draggedStoreRef.current = null;
+    setDragMapStores(null);
+    setDraggedStoreId(null);
   }
 
   function allowLocationAndReroute() {
@@ -186,8 +234,8 @@ export function RoutePlanner() {
               {currentLocation && <span className="route-start-badge"><MapPin aria-hidden="true" /> Mulai dari lokasi Anda</span>}
             </header>
             {orderedStores.length ? <>
-              <ZoneOsmMap stores={orderedStores} startLocation={currentLocation} />
-              <ol className="route-stop-list" aria-label={`Urutan rute toko ${selectedZone.name}`}>
+              <ZoneOsmMap stores={mapStores} startLocation={currentLocation} />
+              <ol className="route-stop-list" ref={stopListRef} aria-label={`Urutan rute toko ${selectedZone.name}`}>
                 {orderedStores.map((store, index) => {
                   const origin = index === 0 ? currentLocation : orderedStores[index - 1];
                   return <li key={store.id} data-store-id={store.id} className={draggedStoreId === store.id ? "is-dragging" : undefined}>
@@ -199,16 +247,19 @@ export function RoutePlanner() {
                       onPointerDown={(event) => {
                         event.preventDefault();
                         event.currentTarget.setPointerCapture(event.pointerId);
+                        draggedStoreRef.current = store.id;
+                        setDragMapStores(orderedStores);
                         setDraggedStoreId(store.id);
                       }}
                       onPointerMove={(event) => {
-                        if (draggedStoreId === null) return;
+                        if (draggedStoreRef.current === null) return;
                         const target = document.elementFromPoint(event.clientX, event.clientY)?.closest<HTMLElement>("[data-store-id]");
                         const targetId = Number(target?.dataset.storeId);
-                        if (Number.isFinite(targetId)) moveDraggedStore(targetId);
+                        if (target && stopListRef.current?.contains(target) && Number.isFinite(targetId)) moveDraggedStore(targetId);
                       }}
-                      onPointerUp={() => setDraggedStoreId(null)}
-                      onPointerCancel={() => setDraggedStoreId(null)}
+                      onPointerUp={finishDrag}
+                      onPointerCancel={finishDrag}
+                      onLostPointerCapture={finishDrag}
                     ><GripVertical aria-hidden="true" /></button>
                     <span className="route-stop-number">{index + 1}</span>
                     <span className="route-stop-copy"><strong>{store.name}</strong><small>{store.address || store.branch}</small>

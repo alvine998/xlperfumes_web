@@ -63,11 +63,12 @@
 .route-start-badge { display: inline-flex; align-items: center; gap: 7px; border-radius: 999px; padding: 8px 12px; color: #315d3d; background: #eef7ef; font-size: 13px; font-weight: 700; white-space: nowrap; }
 .route-start-badge svg { width: 16px; height: 16px; }
 .route-stop-list { display: grid; gap: 0; margin: 0; padding: 0 22px 16px; list-style: none; }
-.route-stop-list li { display: grid; grid-template-columns: 24px 30px minmax(160px, 1fr) auto auto auto; align-items: center; gap: 10px; min-height: 76px; border-top: 1px solid #e9ede7; transition: background-color .15s ease; }
-.route-stop-list li.is-dragging { background: #f0f7ef; }
+.route-stop-list li { display: grid; grid-template-columns: 24px 30px minmax(160px, 1fr) auto auto auto; align-items: center; gap: 10px; min-height: 76px; border-top: 1px solid #e9ede7; transition: background-color .15s ease, box-shadow .15s ease; }
+.route-stop-list li.is-dragging { position: relative; z-index: 1; background: #f0f7ef; box-shadow: 0 8px 20px #25352b26; }
 .route-stop-drag-handle,
 .route-stop-order-actions button { display: grid; width: 30px; height: 34px; place-items: center; border: 1px solid #dce5dc; border-radius: 9px; color: #53604b; background: #fff; cursor: grab; }
 .route-stop-drag-handle { width: 24px; touch-action: none; }
+.route-stop-list li.is-dragging .route-stop-drag-handle { cursor: grabbing; }
 .route-stop-drag-handle svg { width: 17px; height: 17px; }
 .route-stop-order-actions { display: flex; gap: 4px; }
 .route-stop-order-actions button { width: 29px; height: 30px; cursor: pointer; }
@@ -110,3 +111,4 @@
   .route-stop-actions { grid-column: 3; grid-row: 4; align-items: center; flex-wrap: wrap; }
   .route-stop-list a { min-height: 44px; }
 }
+@media (prefers-reduced-motion: reduce) { .route-stop-list li { transition: none; } }
